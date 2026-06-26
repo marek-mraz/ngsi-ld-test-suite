@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  scorpio:
+    image: scorpiobroker/all-in-one-runner:${DOCKER_TAG:-plug-test-latest}
+    container_name: scorpio${SUFFIX}
+    hostname: scorpio${SUFFIX}
+    environment:
+      DBHOST: scorpio-database${SUFFIX}
+    ports:
+      - "${PORT}:9090"
+    depends_on:
+      - postgres
+  postgres:
+    image: postgis/postgis
+    hostname: scorpio-database${SUFFIX}
+    container_name: scorpio-database${SUFFIX}
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: ngb
+      POSTGRES_PASSWORD: ngb
+      POSTGRES_DB: ngb

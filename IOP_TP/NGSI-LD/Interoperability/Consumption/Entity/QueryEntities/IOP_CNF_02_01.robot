@@ -26,13 +26,13 @@ ${b3_url}
 ${b4_url}
 
 *** Test Cases ***
-IOP_CNF_02_01 Query Entities Of Type OffstreetParking Via GET
+IOP_CNF_02_01 Query Entities Of Type OffStreetParking Via GET
     [Documentation]    Pre-conditions: no user context. Data on every broker. B contains OffStreetParking1 without location and OffStreetParking2 without location. C contains OffStreetParking1 and OffStreetParking2. D contains OffStreetParking2 with location and name only.
     ...                Registrations established: Inclusive in A to B. Redirect in A to C. Redirect in A to D.
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    proxy-redirect    4_3_6    5_7_2    6_4_3_1
 
-    #Agent queries all entities with type OffstreetParking in A and checks for a successful response not containing the name attribute.
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b1_url}
+    #Agent queries all entities with type OffStreetParking in A and checks for a successful response not containing the name attribute.
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}
     Check Response Status Code    200    ${response.status_code}
     @{entities_b1}=    Set Variable   ${response.json()}
     ${first_payload}=    Get From List   ${entities_b1}    0
@@ -40,21 +40,21 @@ IOP_CNF_02_01 Query Entities Of Type OffstreetParking Via GET
     Should Not Contain    ${first_payload}   name
     Should Not Contain    ${second_payload}    name
 
-    #Agent queries all entities with type OffstreetParking in B, C and D
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b2_url}
+    #Agent queries all entities with type OffStreetParking in B, C and D
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}
     @{entities_b2}=    Set Variable    ${response.json()}
     ${first_b2_payload}=    Get From List   ${entities_b2}    0
     ${second_b2_payload}=    Get From List   ${entities_b2}    1
 
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b3_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}
     @{entities_b3}=    Set Variable    ${response.json()}
     ${b3_payload}=    Get From List   ${entities_b3}    0
 
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b4_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b4_url}
     @{entities_b4}=    Set Variable    ${response.json()}
     ${b4_payload}=    Get From List   ${entities_b4}    0
     
-    #Agent checks that OffstreetParking1 in A has the same availableSpotsNumber and totalSpotsNumber as the one in B and the same location attribute found in C. The OffstreetParking2 entity in A contains the attributes of both OffstreetParking2 availableSpotsNumber and totalSpotsNumber in C and the same location found in D.
+    #Agent checks that OffStreetParking1 in A has the same availableSpotsNumber and totalSpotsNumber as the one in B and the same location attribute found in C. The OffStreetParking2 entity in A contains the attributes of both OffStreetParking2 availableSpotsNumber and totalSpotsNumber in C and the same location found in D.
     Should Be Equal    ${first_payload}[availableSpotsNumber]    ${first_b2_payload}[availableSpotsNumber]
     Should Be Equal    ${first_payload}[totalSpotsNumber]    ${first_b2_payload}[totalSpotsNumber]
     Should Be Equal    ${first_payload}[location]    ${b3_payload}[location]

@@ -14,7 +14,10 @@ Suite Teardown      Delete Initial Temporal Entities
 *** Variables ***
 ${first_vehicle_payload_file}=      2020-08-vehicle-temporal-representation.jsonld
 ${second_vehicle_payload_file}=     2020-09-vehicle-temporal-representation.jsonld
-${expectation_file}=                vehicles-temporal-representation-021-06.jsonld
+# 021_25 creates BOTH 021-06-A and 021-06-B; local=true (NGSI-LD 6.3.18 / 5.5.13) only excludes
+# Context Source Registrations, so both LOCAL entities are returned. The shared 021-06 expectation
+# lists only A (correct for 021_06, which creates only A); use a 021_25-specific one with A and B.
+${expectation_file}=                vehicles-temporal-representation-021-25.jsonld
 
 
 *** Test Cases ***

@@ -12,14 +12,11 @@
          }
       ],
       "location":{
-         "type":"GeoProperty",
-         "value":{
-            "type":"Point",
-            "coordinates":[
-               -8.521,
-               41.2
-            ]
-         }
+         "type":"Point",
+         "coordinates":[
+            -8.521,
+            41.2
+         ]
       },
       "endpoint":"http://my.csource.org:1026"
    }

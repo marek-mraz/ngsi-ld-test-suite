@@ -25,35 +25,35 @@ ${b3_url}
 ${b4_url}
 
 *** Test Cases ***
-IOP_CNF_03_02 Query Entities Of Type OffstreetParking And Vehicle with attrs
+IOP_CNF_03_02 Query Entities Of Type OffStreetParking And Vehicle with attrs
     [Documentation]    Pre-conditions: No user context. Data only on leaves. B contains Vehicle:1. C contains OffStreetParking:1 with location and name only. D contains OffStreetParking:1, OffStreetParking:2 and Vehicle2.
     ...                Registrations established: Auxiliary in A to B. Inclusive in A to C. Inclusive in A to D.
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    4_3_6    5_7_2    6_4_3_1
 
-    #Client retrieves the location property from all entities with type OffstreetParking and Vehicle in A and checks for a successful response.
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b1_url}
+    #Client retrieves the location property from all entities with type OffStreetParking and Vehicle in A and checks for a successful response.
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b1_url}
     Check Response Status Code    200    ${response.status_code}
 
     &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${first_parking_payload}=    Get From Dictionary    ${payload}    OffstreetParking:1
-    ${second_parking_payload}=    Get From Dictionary    ${payload}    OffstreetParking:2
+    ${first_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:1
+    ${second_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:2
     ${first_vehicle}=    Get From Dictionary    ${payload}    Vehicle:1
     Should Contain    ${first_parking_payload}    location
     Should Contain    ${second_parking_payload}    location
 
-    #Client queries all entities with type OffstreetParking and Vehicle in B, C and D.
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b2_url}
+    #Client queries all entities with type OffStreetParking and Vehicle in B, C and D.
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b2_url}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${expected_entity1}=    Get From Dictionary    ${payload}    Vehicle:1
 
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b3_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b3_url}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_entity2}=    Get From Dictionary    ${payload}    OffstreetParking:1
+    ${expected_entity2}=    Get From Dictionary    ${payload}    OffStreetParking:1
 
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b4_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b4_url}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_entity3}=    Get From Dictionary    ${payload}    OffstreetParking:1
-    ${expected_entity4}=    Get From Dictionary    ${payload}    OffstreetParking:2
+    ${expected_entity3}=    Get From Dictionary    ${payload}    OffStreetParking:1
+    ${expected_entity4}=    Get From Dictionary    ${payload}    OffStreetParking:2
 
     #Client checks that the attributes of the entities in A are the same as the ones in B, C and D.
     Should Be Equal    ${first_parking_payload}[name]    ${expected_entity2}[name]

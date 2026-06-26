@@ -29,13 +29,13 @@ ${b3_url}
 ${b4_url}
 
 *** Test Cases ***
-IOP_CNF_02_02 Query Entities Of Type OffstreetParking And Vehicle with attrs
+IOP_CNF_02_02 Query Entities Of Type OffStreetParking And Vehicle with attrs
     [Documentation]    Pre-conditions: no user context. Data only on leaves. B contains OffStreetParking1 and Vehicle1. C contains OffStreetParking1 with location and name only and OffStreetParking2. D contains OffStreetParking2 with location and name only and Vehicle2.
     ...                Registrations established: Inclusive in A to B. Redirect in A to C. Redirect in A to D.
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    proxy-redirect    4_3_6    5_7_2    6_4_3_1
 
-    #Client queries all entities with type OffstreetParking and Vehicle in A and checks for a successful response that contains the location attribute for all entities.
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b1_url}
+    #Client queries all entities with type OffStreetParking and Vehicle in A and checks for a successful response that contains the location attribute for all entities.
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b1_url}
     Check Response Status Code    200    ${response.status_code}
     &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${parking1_payload}=    Get From Dictionary    ${payload}    ${first_parking_entity_id}
@@ -47,12 +47,12 @@ IOP_CNF_02_02 Query Entities Of Type OffstreetParking And Vehicle with attrs
     Should Contain    ${vehicle1_payload}    location
     Should Contain    ${vehicle2_payload}    location
 
-    #Client queries all entities with type OffstreetParking and Vehicle in B, C and D. 
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b2_url}
+    #Client queries all entities with type OffStreetParking and Vehicle in B, C and D. 
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b2_url}
     &{first_expected_payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b3_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b3_url}
     &{second_expected_payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${response}=    Query Entities    entity_types=OffstreetParking,Vehicle    attrs=location    broker_url=${b4_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b4_url}
     &{third_expected_payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
 
     #Client checks that the attributes of the entities in A are the same as the ones in B, C and D.

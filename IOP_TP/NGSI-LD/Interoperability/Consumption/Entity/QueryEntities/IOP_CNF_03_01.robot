@@ -24,31 +24,31 @@ ${b3_url}
 ${b4_url}
 
 *** Test Cases ***
-IOP_CNF_03_01 Query Entities Of Type OffstreetParking Via GET
+IOP_CNF_03_01 Query Entities Of Type OffStreetParking Via GET
     [Documentation]    Pre-conditions: No user context. Data only on leaves. B contains OffStreetParking2 without location. C contains OffStreetParking1. D contains OffStreetParking1 without location.
     ...                Registration established: Auxiliary in A to B. Inclusive in A to C. Inclusive in A to D.
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    4_3_6    5_7_2    6_4_3_1
 
-    #Client queries all entities with type OffstreetParking in A and checks for a successful response. 
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b1_url}
+    #Client queries all entities with type OffStreetParking in A and checks for a successful response. 
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}
     Check Response Status Code    200    ${response.status_code}
 
     &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${first_parking_payload}=    Get From Dictionary    ${payload}    OffstreetParking:1
-    ${second_parking_payload}=    Get From Dictionary    ${payload}    OffstreetParking:2
+    ${first_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:1
+    ${second_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:2
 
-    #Client queries all entities with type OffstreetParking in B, C and D.
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b2_url}
+    #Client queries all entities with type OffStreetParking in B, C and D.
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_parking1}=    Get From Dictionary    ${payload}    OffstreetParking:2
+    ${expected_parking1}=    Get From Dictionary    ${payload}    OffStreetParking:2
 
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b3_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_parking2}=    Get From Dictionary    ${payload}    OffstreetParking:1
+    ${expected_parking2}=    Get From Dictionary    ${payload}    OffStreetParking:1
 
-    ${response}=    Query Entities    entity_types=OffstreetParking    broker_url=${b4_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b4_url}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_parking3}=    Get From Dictionary    ${payload}    OffstreetParking:2
+    ${expected_parking3}=    Get From Dictionary    ${payload}    OffStreetParking:2
 
     #Client checks that the attributes of the entities in A are the same as the ones in B, C and D.
     Should Be Equal    ${first_parking_payload}[name]    ${expected_parking2}[name]

@@ -22,7 +22,7 @@ ${subscription_id}=                     ${EMPTY}
     ${response}=    Create Context Source Registration Subscription    ${subscription_payload}
 
     Dictionary Should Contain Key    ${response.headers}    Location    msg=HTTP Headers do not contain key 'Location'
-    ${subscription_id}=    Get From Dictionary    ${response.headers}    Location
+    ${subscription_id}=    Check Response Headers ID Not Empty    ${response.headers}
     Set Suite Variable    ${subscription_id}
 
     Check Response Status Code    201    ${response.status_code}

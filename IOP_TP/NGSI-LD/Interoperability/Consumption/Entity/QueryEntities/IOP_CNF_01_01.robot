@@ -28,7 +28,7 @@ IOP_CNF_01_01 Query Entities Of Type OffStreetParking Via GET
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    proxy-exclusive    4_3_6    5_7_2    6_4_3_1
 
     #Agent queries all entities with type OffStreetParking in A and checks for a successful response that contains the attributes of both entities in B and C.
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     @{payload}=    Set Variable   ${response.json()}
     Should Contain    ${payload}\[OffStreetParking1]    availableSpotsNumber
@@ -37,12 +37,12 @@ IOP_CNF_01_01 Query Entities Of Type OffStreetParking Via GET
     Should Contain    ${payload}\[OffStreetParking2]    location
 
     #Agent queries all entities with type OffStreetParking in B and C
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     @{first_expected_payload}=    Set Variable    ${response.json()}
     ${entity_ids}=    Create List    ${entity_id}    ${second_entity_id}
     Check Response Body Containing Entities URIS set to    ${entity_ids}    ${response.json()}
 
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     @{second_expected_payload}=    Set Variable    ${response.json()}
     Check Response Body Containing Entities URIS set to    ${entity_id}    ${response.json()}
 

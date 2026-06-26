@@ -6,3 +6,4 @@ results-*/
 .vscode/
 .venv
 .DS_Store
+etsi-failures.md

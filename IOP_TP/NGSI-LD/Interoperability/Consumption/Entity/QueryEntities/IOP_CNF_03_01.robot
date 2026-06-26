@@ -30,7 +30,7 @@ IOP_CNF_03_01 Query Entities Of Type OffStreetParking Via GET
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    4_3_6    5_7_2    6_4_3_1
 
     #Client queries all entities with type OffStreetParking in A and checks for a successful response. 
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
 
     &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
@@ -38,15 +38,15 @@ IOP_CNF_03_01 Query Entities Of Type OffStreetParking Via GET
     ${second_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:2
 
     #Client queries all entities with type OffStreetParking in B, C and D.
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${expected_parking1}=    Get From Dictionary    ${payload}    OffStreetParking:2
 
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${expected_parking2}=    Get From Dictionary    ${payload}    OffStreetParking:1
 
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b4_url}
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${expected_parking3}=    Get From Dictionary    ${payload}    OffStreetParking:2
 

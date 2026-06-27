@@ -30,9 +30,13 @@ IOP_CNF_02_01 Retrieve OffStreetParking:1
 
     #Client retrieves OffStreetParking:1 in A and checks for a partial successful. The entity returned should be the whole entity.
     ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}
-    Check Response Status Code    207    ${response.status_code}
+    Check Response Status Code    200    ${response.status_code}    # NGSI-LD 6.5.3.1: Retrieve Entity has no 207 response
     ${payload}=    Set To Dictionary    ${response.json()}
-    Should Be Equal    ${payload}    ${first_full_entity_payload_filename}
+    # Compare to the loaded full entity (the original compared to the filename STRING). Drop @context:
+    # the application/json retrieve has no @context member.
+    ${first_full_entity_payload}=    Load Entity    ${first_full_entity_payload_filename}    ${entity_id}
+    Remove From Dictionary    ${first_full_entity_payload}    @context
+    Should Be Equal    ${payload}    ${first_full_entity_payload}
 
     #Client retrieves OffStreetParking:1 in B and C.
     ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b2_url}
@@ -42,7 +46,7 @@ IOP_CNF_02_01 Retrieve OffStreetParking:1
     ${second_expected_payload}=    Set To Dictionary    ${response.json()}
 
     #Client checks that the entity returned from A has attributes from the entities in B and C.
-    Should Be Equal    ${payload}[availableSpotNumbers][value]    ${first_expected_payload}[availableSpotNumbers][value]
+    Should Be Equal    ${payload}[availableSpotsNumber][value]    ${first_expected_payload}[availableSpotsNumber][value]
     Should Be Equal    ${payload}[totalSpotsNumber][value]    ${first_expected_payload}[totalSpotsNumber][value]
     Should Be Equal    ${payload}[location][value]    ${second_expected_payload}[location][value]
 

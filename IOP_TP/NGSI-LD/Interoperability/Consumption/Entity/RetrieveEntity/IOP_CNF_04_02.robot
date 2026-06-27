@@ -47,7 +47,7 @@ IOP_CNF_04_02 Retrieve OffStreetParking:1 Location Attribute
     ${third_expected_payload}=    Set To Dictionary    ${response.json()}
 
     #Client checks that the entity returned from A should have the same attributes as the one in B, C and E.
-    Should Be Equal    ${payload}[availableSpotsNumbers]    ${first_expected_payload}[availableSpotsNumbers]
+    Should Be Equal    ${payload}[availableSpotsNumber]    ${first_expected_payload}[availableSpotsNumber]
     Should Be Equal    ${payload}[totalSpotsNumber]    ${first_expected_payload}[totalSpotsNumber]
     Should Be Equal    ${payload}[location]    ${second_expected_payload}[location]
     Should Be Equal    ${payload}[name]    ${third_expected_payload}[name]

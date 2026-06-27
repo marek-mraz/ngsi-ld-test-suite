@@ -26,15 +26,18 @@ IOP_CNF_01_01 Retrieve OffStreetParking:1
     ...                Registrations established: Inclusive in A to B. Exclusive in A to C.
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    proxy-exclusive    4_3_6    5_7_1
 
-    #Client retrieves OffStreetParking:1 in A and checks for a successful response. 
-    ${response}=    Retrieve Entity    ${entity_id1}    broker_url=${b1_url}
+    #Client retrieves OffStreetParking:1 in A and checks for a successful response.
+    ${response}=    Retrieve Entity    ${entity_id1}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Contain   ${response.json()}    availableSpotsNumber
     Should Contain   ${response.json()}    totalSpotsNumber
 
     #Client retrieves OffStreetParking:1 in B.
     ${expected_payload}=    Load Entity    ${first_entity_payload_filename}    ${entity_id1}
-    ${response}=    Retrieve Entity    ${entity_id1}   broker_url=${b2_url}
+    # The retrieved entity is rendered as application/json (no @context member); the loaded fixture
+    # carries an @context only so it can be created. Drop it so the structural comparison matches.
+    Remove From Dictionary    ${expected_payload}    @context
+    ${response}=    Retrieve Entity    ${entity_id1}   broker_url=${b2_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
 
     #Client checks that the entity returned is the full entity.

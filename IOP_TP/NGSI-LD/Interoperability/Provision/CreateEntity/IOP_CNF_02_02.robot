@@ -57,6 +57,7 @@ IOP_CNF_02_02 Create OffStreetParking:2
 Setup Initial Context Source Registrations
     ${entity_id}=    Generate Random Parking Entity Id
     Set Suite Variable    ${entity_id}
+    ${create_ops}=    Create List    createEntity
 
     ${registration_id1}=     Generate Random CSR Id
     Set Suite Variable    ${registration_id1}
@@ -66,6 +67,7 @@ Setup Initial Context Source Registrations
     ...    entity_id=${entity_id}
     ...    broker_url=${b2_url}
     ...    mode=inclusive
+    ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 
@@ -77,6 +79,7 @@ Setup Initial Context Source Registrations
     ...    entity_id=${entity_id}
     ...    broker_url=${b3_url}
     ...    mode=redirect
+    ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 
@@ -88,6 +91,7 @@ Setup Initial Context Source Registrations
     ...    entity_id=${entity_id}
     ...    broker_url=${b4_url}
     ...    mode=redirect
+    ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 

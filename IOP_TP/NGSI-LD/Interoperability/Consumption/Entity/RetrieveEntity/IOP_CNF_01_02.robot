@@ -38,7 +38,7 @@ IOP_CNF_01_02 Retrieve OffStreetParking:2
     ${second_expected_payload}=    Set To Dictionary    ${response.json()}
 
     #Client checks that the entity returned from A has attributes from both entities in B and C.
-    Should Be Equal    ${payload}[availableSpotNumbers][value]    ${first_expected_payload}[availableSpotNumbers][value]
+    Should Be Equal    ${payload}[availableSpotsNumber][value]    ${first_expected_payload}[availableSpotsNumber][value]
     Should Be Equal    ${payload}[totalSpotsNumber][value]    ${first_expected_payload}[totalSpotsNumber][value]
     Should Be Equal    ${payload}[location][value]    ${second_expected_payload}[location][value]
 

@@ -30,7 +30,7 @@ IOP_CNF_02_02 Retrieve OffStreetParking:1 Location Attribute
 
     #Client retrieves OffStreetParking:1 in A and checks for a partial successful. The entity returned should contain the location attribute.
     ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}
-    Check Response Status Code    207    ${response.status_code}
+    Check Response Status Code    200    ${response.status_code}    # NGSI-LD 6.5.3.1: Retrieve Entity has no 207 response
     ${payload}=    Set To Dictionary    ${response.json()}
     Should Contain    ${payload}    location
 

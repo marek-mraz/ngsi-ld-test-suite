@@ -28,11 +28,14 @@ IOP_CNF_01_01 Create OffStreetParking:1
 
     #Create OffStreetParking:1 in A and check for a successful response
     ${expected_payload}=    Load Entity    ${entity_payload_filename}    ${entity_id}
+    # The application/json retrieve below has no @context member; the loaded fixture carries one only so
+    # it can be created. Drop it for the structural comparison.
+    Remove From Dictionary    ${expected_payload}    @context
     ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
-    
+
     #Agent checks, with local=true, that the entity is created in A
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Be Equal    ${response.json()}    ${expected_payload}
 
@@ -53,6 +56,11 @@ Setup Initial Context Source Registrations
     ${entity_id}=    Generate Random Parking Entity Id
     Set Suite Variable    ${entity_id}
 
+    # The create must be FORWARDED to B, so the inclusive registration has to support the createEntity
+    # operation. The default operation set is "federationOps" which is read-only (NGSI-LD 4.20), so
+    # without this the create is never forwarded (NGSI-LD 5.6.1: forward only "in case the Create Entity
+    # operation is supported").
+    ${create_ops}=    Create List    createEntity
     ${registration_id1}=     Generate Random CSR Id
     Set Suite Variable    ${registration_id1}
     ${registration_payload}=    Prepare Context Source Registration From File
@@ -61,6 +69,7 @@ Setup Initial Context Source Registrations
     ...    entity_id=${entity_id}
     ...    broker_url=${b2_url}
     ...    mode=inclusive
+    ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 

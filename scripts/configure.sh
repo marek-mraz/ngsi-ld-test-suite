@@ -59,7 +59,7 @@ confirm() {
 configure_virtualenv() {
   echo "Configuring Python Virtual Environment"
   echo "  - Cloning the ETSI repository in the current folder"
-  git clone https://forge.etsi.org/rep/cim/ngsi-ld-test-suite.git              >/dev/null 2>/dev/null
+  git clone https://github.com/marek-mraz/ngsi-ld-test-suite.git              >/dev/null 2>/dev/null
 
   cd ngsi-ld-test-suite || {
       echo "Failure, unable to change to the ngsi-ld-test-suite directory, maybe the git clone operation failed...";

@@ -69,7 +69,7 @@ echo "======================="
 if ( $cloned -eq $false ) {
     echo "------------- doing git clone"
     # Clone the repo - somehow.
-    git clone https://forge.etsi.org/rep/cim/ngsi-ld-test-suite.git >$null 2>&1
+    git clone https://github.com/marek-mraz/ngsi-ld-test-suite.git >$null 2>&1
     cd ngsi-ld-test-suite                                           >$null 2>&1
 } else {
     cd ngsi-ld-test-suite

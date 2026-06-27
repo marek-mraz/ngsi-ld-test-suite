@@ -1,5 +1,5 @@
 {
-    "repoUrl": "https://forge.etsi.org/rep/cim/ngsi-ld-test-suite.git",
+    "repoUrl": "https://github.com/marek-mraz/ngsi-ld-test-suite.git",
     "testFolder": "${testFolder}",
     "testName": "${testName}",
     "excludeOption": "${exclude}",

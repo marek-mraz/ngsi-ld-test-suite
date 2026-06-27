@@ -13,7 +13,7 @@ Test Teardown       Delete Created Context Source Registration And Subscription
 
 
 *** Variables ***
-${context_source_registration_payload_file_path}=       csourceRegistrations/context-source-registration.jsonld
+${context_source_registration_payload_file_path}=       csourceRegistrations/context-source-registration-building.jsonld
 ${subscription_payload_file_path}=                      csourceSubscriptions/subscription.jsonld
 
 

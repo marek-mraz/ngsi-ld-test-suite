@@ -13,7 +13,7 @@ Test Teardown       Delete Created Context Source Registration And Context Sourc
 
 
 *** Variables ***
-${context_source_registration_payload_file_path}=       csourceRegistrations/context-source-registration.jsonld
+${context_source_registration_payload_file_path}=       csourceRegistrations/context-source-registration-building.jsonld
 ${subscription_payload_file_path}=                      csourceSubscriptions/subscription.jsonld
 ${update_fragment_file_path}=                           csourceRegistrations/fragments/context-source-registration-update.json
 
@@ -48,6 +48,9 @@ Create Initial Context Source Registration and Context Source Registration Subsc
     Check Response Status Code    201    ${create_csrsub_response.status_code}
     Set Suite Variable    ${context_source_registration_id}
     Set Suite Variable    ${subscription_id}
+    # Drain the initial newlyMatching cSourceNotification sent on subscription creation (NGSI-LD 5.11.7),
+    # so the test body validates the notification triggered by the registration update.
+    Wait for notification
 
 Delete Created Context Source Registration And Context Source Registration Subscription
     Stop Local Server

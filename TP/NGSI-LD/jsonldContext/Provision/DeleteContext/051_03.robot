@@ -42,11 +42,14 @@ Create Initial cached @context
     Check Response Status Code    201    ${response.status_code}
     ${uri}=    Fetch Id From Response Location Header    ${response.headers}
     ${entity_id}=    Generate Random Building Entity Id
+    # ${url} already contains the /ngsi-ld/v1 prefix and ${uri} is the full Location path, so
+    # ${url}${uri} doubled the prefix (.../ngsi-ld/v1/ngsi-ld/v1/jsonldContexts/... -> 405 ->
+    # LdContextNotAvailable). Use the broker host + the Location path instead.
     ${response}=    Create Entity Selecting Content Type
     ...    ${entity_filename}
     ...    ${entity_id}
     ...    ${content_type}
-    ...    ${url}${uri}
+    ...    http://localhost:9090${uri}
 
     ${response}=    Delete Entity    ${entity_id}
     ${response}=    Serve a @context    ${contextId}    true

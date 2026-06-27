@@ -21,7 +21,7 @@ ${third_context_source_registration_payload_file_path}=     csourceRegistrations
 *** Test Cases ***    QUERY_PARAM_NAME    QUERY_PARAM_VALUE    EXPECTATION_FILE_PATH    EXPECTED_CONTEXT_SOURCE_REGISTRATION_IDS
 037_10_01 With List Of Entity Ids
     [Tags]    csr-query    5_10_2
-    id    ${first_context_source_registration_id},${third_context_source_registration_id}    csourceRegistrations/expectations/context-source-registrations-037-10-01.json    ${first_context_source_registration_id},${third_context_source_registration_id}
+    id    urn:ngsi-ld:Building:1,urn:ngsi-ld:Building:2    csourceRegistrations/expectations/context-source-registrations-037-10-01.json    ${second_context_source_registration_id}    ${third_context_source_registration_id}
 037_10_02 With NGSI-LD Query
     [Tags]    csr-query    5_10_2
     q    csourceProperty1=="aValue"    csourceRegistrations/expectations/context-source-registrations-037-10-02.json    ${third_context_source_registration_id}

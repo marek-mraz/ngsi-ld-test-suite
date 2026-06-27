@@ -93,11 +93,17 @@ Retrieve Context Source Registration Subscription
 
 Update Context Source Registration Subscription
     [Tags]    actor_context-subscriber
-    [Arguments]    ${subscription_id}    ${subscription_update_fragment}
+    [Arguments]    ${subscription_id}    ${subscription_update_fragment}    ${context}=${ngsild_test_suite_context}
 
+    &{headers}=    Create Dictionary
+    IF    '${context}'!=''
+        ${context_link}=    Build Context Link    ${context}
+        Set To Dictionary    ${headers}    Link    ${context_link}
+    END
     ${response}=    PATCH
     ...    url=${url}/${CONTEXT_SOURCE_REGISTRATION_SUBSCRIPTION_ENDPOINT_PATH}/${subscription_id}
     ...    json=${subscription_update_fragment}
+    ...    headers=${headers}
     ...    expected_status=any
     Output    ${response}    Update Context Source Registration Subscription
     RETURN    ${response}

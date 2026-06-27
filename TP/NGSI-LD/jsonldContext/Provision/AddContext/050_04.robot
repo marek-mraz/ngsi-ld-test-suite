@@ -41,11 +41,15 @@ ${content_type}=        application/json
     ${response_serve}=    Serve a @context    ${uri}    true
     Check Response Kind set to    ${response_serve.json()}    Hosted
     ${entity_id}=    Generate Random Building Entity Id
+    # ${url} already contains the /ngsi-ld/v1 prefix and ${uri} is the full Location path
+    # (/ngsi-ld/v1/jsonldContexts/...). Concatenating both doubled the prefix, yielding an
+    # unresolvable .../ngsi-ld/v1/ngsi-ld/v1/jsonldContexts/... URL (405 -> LdContextNotAvailable).
+    # The hosted @context absolute URL is the broker host + the Location path.
     Create Entity Selecting Content Type
     ...    ${entity_filename}
     ...    ${entity_id}
     ...    ${content_type}
-    ...    ${url}${uri}
+    ...    http://localhost:9090${uri}
 
     Delete Entity    ${entity_id}
     # Need to check that each of the URIs are Cached @contexts

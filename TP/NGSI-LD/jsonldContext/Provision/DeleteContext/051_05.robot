@@ -42,7 +42,13 @@ ${uri}                      /api/v1/context.jsonld
 Create Initial @context condition from an external server
     Start @context Local Server
 
-    # ${uri}=    Catenate    http://${context_server_host}:${context_server_port}${uri}
+    # The @context URL must be absolute so the broker can fetch+cache it from the local mock server.
+    # Original bug 1: the Catenate was commented out, leaving ${uri} relative (/api/v1/context.jsonld)
+    # -> unresolvable -> never Cached. Bug 2: a prior mock test does "Set Global Variable ${uri}" with
+    # the absolute URL, which leaks here and would make the Catenate double the host. Reset to the
+    # relative path first, then build the absolute URL (mirrors 053_05).
+    ${uri}=    Set Variable    /api/v1/context.jsonld
+    ${uri}=    Catenate    SEPARATOR=    http://${context_server_host}:${context_server_port}    ${uri}
     Set Global Variable    ${uri}
 
     Create Entity selecting @context    ${entityfile}    ${uri}

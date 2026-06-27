@@ -51,6 +51,11 @@ Create Initial @context condition from an external server
     ${first_existing_entity_id}=    Generate Random Id    ${testing_id_prefix}
     Set Global Variable    ${first_existing_entity_id}
 
+    # Reset ${uri} to the relative path first: a prior mock test does "Set Global Variable ${uri}"
+    # with the already-absolute URL, which leaks into this test and makes the Catenate below double
+    # the host (http://host:porthttp://host:port/...). Passing in isolation, failing in the full
+    # suite, was caused purely by that leaked global.
+    ${uri}=    Set Variable    /api/v1/context.jsonld
     ${uri}=    Catenate    SEPARATOR=    http://${context_server_host}:${context_server_port}    ${uri}
     Set Global Variable    ${uri}
 

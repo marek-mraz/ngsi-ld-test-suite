@@ -268,12 +268,15 @@ Check Response Body Containing List Containing Subscription elements
         ...    ${subscription_id}
         ${index}=    Evaluate    ${index} + 1
     END
+    # exclude_regex_paths matches DeepDiff paths like root[0]['jsonldContext'] (single quotes), so the
+    # ignore regexes must be bare key names. The double-quoted forms below never matched, which only
+    # surfaced once the broker started emitting the spec-mandated jsonldContext member (NGSI-LD 5.2.12).
     ${ignored_keys}=    Create List
     ...    ${context_regex_expr}
-    ...    "jsonldContext"
-    ...    "timesFailed"
-    ...    "timesSent"
-    ...    "notificationTrigger"
+    ...    jsonldContext
+    ...    timesFailed
+    ...    timesSent
+    ...    notificationTrigger
     ${comparison_result}=    Compare Dictionaries Ignoring Keys
     ...    ${subscription_payload}
     ...    ${response_body}
@@ -476,19 +479,16 @@ Check Notification Containing Entities Elements
 
 Check Pagination Prev And Next Headers
     [Arguments]    ${prev_link}    ${next_link}    ${response_headers}
-    ${expected_links}=    Create List    ${prev_link}    ${next_link}
-    IF    '${prev_link}'!='' and '${next_link}'!=''
-        Lists Should Be Equal
-        ...    ${response_headers['Link'].replace(" ", "").split(',')}
-        ...    ${expected_links}
-        ...    ignore_order=True
-    END
-    IF    '${prev_link}'!='' and '${next_link}'==''
-        Should Be Equal    ${response_headers['Link']}    ${prev_link}
-    END
-    IF    '${prev_link}'=='' and '${next_link}'!=''
-        Should Be Equal    ${response_headers['Link']}    ${next_link}
-    END
+    # When both links are empty no pagination is expected and the Link header may be absent; skip.
+    IF    '${prev_link}'=='' and '${next_link}'==''    RETURN
+    # NGSI-LD 6.3.5: a application/json response also conveys the @context as a Link header value.
+    # Pagination assertions must consider only the rel="prev"/rel="next" links and ignore the context link.
+    ${actual_links}=    Evaluate
+    ...    [l for l in $response_headers['Link'].replace(" ", "").split(',') if 'json-ld#context' not in l]
+    ${expected_links}=    Create List
+    IF    '${prev_link}'!=''    Append To List    ${expected_links}    ${prev_link.replace(" ", "")}
+    IF    '${next_link}'!=''    Append To List    ${expected_links}    ${next_link.replace(" ", "")}
+    Lists Should Be Equal    ${actual_links}    ${expected_links}    ignore_order=True
 
 Check Resource Set To
     [Arguments]    ${expected_resource}    ${response_body}    ${ignored_keys}=${None}    ${group_by}=${None}

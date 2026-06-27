@@ -13,7 +13,7 @@ Test Template       Query Context Source Registration With Limit And Offset Para
 
 
 *** Variables ***
-${first_context_source_registration_payload_file_path}=     csourceRegistrations/context-source-registration.jsonld
+${first_context_source_registration_payload_file_path}=     csourceRegistrations/context-source-registration-building.jsonld
 ${second_context_source_registration_payload_file_path}=    csourceRegistrations/context-source-registration-location.jsonld
 ${third_context_source_registration_payload_file_path}=     csourceRegistrations/context-source-registration-detailed-information.jsonld
 
@@ -21,13 +21,13 @@ ${third_context_source_registration_payload_file_path}=     csourceRegistrations
 *** Test Cases ***    LIMIT    OFFSET    EXPECTED_NUMBER    PREV_LINK    NEXT_LINK
 037_11_01 Query Second Subscription
     [Tags]    csr-query    5_10_2
-    ${1}    ${2}    ${1}    </ngsi-ld/v1/csourceRegistrations?type=Building&limit=1&offset=1>;rel="prev";type="application/ld+json"    </ngsi-ld/v1/csourceSubscriptions?type=Building&limit=1&offset=3>;rel="next";type="application/ld+json"
+    ${1}    ${2}    ${1}    </ngsi-ld/v1/csourceRegistrations?type=Building&limit=1&offset=1>;rel="prev";type="application/ld+json"    ${EMPTY}
 037_11_02 Query Last Subscription
     [Tags]    csr-query    5_10_2
     ${2}    ${2}    ${1}    </ngsi-ld/v1/csourceRegistrations?type=Building&limit=2&offset=0>;rel="prev";type="application/ld+json"    ${EMPTY}
 037_11_03 Query All Subscriptions
     [Tags]    csr-query    5_10_2
-    ${15}    ${0}    ${2}    ${EMPTY}    ${EMPTY}
+    ${15}    ${0}    ${3}    ${EMPTY}    ${EMPTY}
 
 
 *** Keywords ***
@@ -44,7 +44,7 @@ Query Context Source Registration With Limit And Offset Parameters
     ...    ContextSourceRegistration
     ...    ${expected_number}
     ...    ${response.json()}
-    Check Pagination Prev And Next Headers    ${prev_link}    ${next_link}    ${response.json()}
+    Check Pagination Prev And Next Headers    ${prev_link}    ${next_link}    ${response.headers}
 
 Setup Initial Context Source Registrations
     ${first_context_source_registration_id}=    Generate Random CSR Id

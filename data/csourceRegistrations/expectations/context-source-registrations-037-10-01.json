@@ -2,20 +2,30 @@
   {
     "id": "urn:ngsi-ld:ContextSourceRegistration:randomUUID",
     "type": "ContextSourceRegistration",
+    "endpoint": "http://my.csource.org:1026",
     "information": [
       {
         "entities": [
           {
             "type": "Building"
           }
+        ],
+        "propertyNames": [
+          "name",
+          "subCategory"
+        ],
+        "relationshipNames": [
+          "locatedAt"
         ]
       }
-    ],
-    "endpoint": "http://my.csource.org:1026"
+    ]
   },
   {
     "id": "urn:ngsi-ld:ContextSourceRegistration:randomUUID",
     "type": "ContextSourceRegistration",
+    "endpoint": "http://my.csource.org:1026",
+    "csourceProperty1": "aValue",
+    "csourceProperty2": "anotherValue",
     "information": [
       {
         "entities": [
@@ -24,19 +34,6 @@
           }
         ]
       }
-    ],
-    "location": {
-      "type": "Point",
-      "coordinates": [
-        -8.521,
-        41.2
-      ]
-    },
-    "endpoint": "http://my.csource.org:1026",
-    "csourceProperty1": "aValue",
-    "csourceProperty2": "anotherValue",
-    "@context": [
-      "https://forge.etsi.org/rep/cim/ngsi-ld-test-suite/-/raw/develop/resources/jsonld-contexts/ngsi-ld-test-suite-compound.jsonld"
     ]
   }
 ]

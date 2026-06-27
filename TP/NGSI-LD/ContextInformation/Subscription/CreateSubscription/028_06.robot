@@ -29,7 +29,10 @@ ${subscription_expectation_file_path}       subscriptions/expectations/subscript
     ...    id=${subscription_id}
     ...    accept=${CONTENT_TYPE_LD_JSON}
     ...    context=${ngsild_test_suite_context}
-    Check Created Resource Set To    ${expected_subscription}    ${response1.json()}
+    # Ignore the broker-synthesized jsonldContext output member (NGSI-LD 5.2.12), as sibling
+    # create/retrieve tests (028_01, 030_03) already do; it is not part of this fixture's expectation.
+    ${ignored_keys}=    Create List    jsonldContext
+    Check Created Resource Set To    ${expected_subscription}    ${response1.json()}    ${ignored_keys}
 
 
 *** Keywords ***

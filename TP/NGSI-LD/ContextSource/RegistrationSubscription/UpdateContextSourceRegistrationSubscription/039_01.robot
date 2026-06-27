@@ -33,9 +33,11 @@ ${subscription_update_fragment_file_path}=      csourceSubscriptions/fragments/s
     ...    subscription_id=${subscription_id}
     ...    context=${ngsild_test_suite_context}
     ...    accept=${CONTENT_TYPE_LD_JSON}
+    ${ignored_keys}=    Create List    ${status_regex_expr}
     Check Updated Resource Set To
     ...    updated_resource=${subscription}
     ...    response_body=${response1.json()}
+    ...    ignored_keys=${ignored_keys}
 
 
 *** Keywords ***

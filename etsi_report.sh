@@ -19,8 +19,8 @@ SUITES=(
   "Provision-TemporalEntityAttributes:ContextInformation/Provision/TemporalEntityAttributes"
   "Subscription:ContextInformation/Subscription"
   "ContextSource:ContextSource"
-  # "DistributedOperations:DistributedOperations"
-  # "jsonldContext:jsonldContext"
+  "DistributedOperations:DistributedOperations"
+  "jsonldContext:jsonldContext"
 )
 
 if [ "$1" != "report" ]; then

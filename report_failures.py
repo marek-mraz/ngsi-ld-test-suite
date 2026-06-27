@@ -66,7 +66,6 @@ EXPECTED_SUITES = [
     "DistributedOperations", "jsonldContext",
 ]
 LEFT_OUT_REASON = {
-    "jsonldContext": "left out — hangs ~30 min on an unreachable external @context server (053_05_01)",
 }
 
 def main(results_glob, outfile):

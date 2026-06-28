@@ -3,6 +3,7 @@
 # For every FAILED test it emits: the requirements (spec tags + doc),
 # what is wrong (the assertion message: expected vs actual), and the
 # HTTP request/response that was under test.
+import datetime
 import sys, glob, xml.etree.ElementTree as ET, os
 
 def collect_msgs(el, out):
@@ -86,6 +87,7 @@ def main(results_glob, outfile):
     total_pass = sum(c[1] for c in counts)
 
     with open(outfile, 'w') as f:
+        f.write(f"# {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         f.write("# ETSI NGSI-LD — Failing tests report\n\n")
         f.write(f"## ❌ Errors: {total_fail}   (✅ passing: {total_pass})\n\n")
         f.write("| Suite | Pass | **Fail** |\n|---|---|---|\n")

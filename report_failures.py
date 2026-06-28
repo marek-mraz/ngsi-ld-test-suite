@@ -58,13 +58,16 @@ def reqresp_pairs(msgs):
             label = None
     return pairs
 
-# Full CI matrix + why a suite may not have run.
+# Full CI matrix — these are the result-dir names dev/etsi-serial.sh produces (keep in sync with the
+# suite loop there). The "left out" footer flags any of these that has no parseable output.xml, so it
+# must use the SAME names the runner writes (ContextInformation-* grouping), not the old flat ETSI
+# folder names — otherwise it falsely reports every suite as "not run".
 EXPECTED_SUITES = [
-    "CommonBehaviours", "Consumption-Discovery", "Consumption-Entity",
-    "Consumption-TemporalEntity", "Provision-BatchEntities", "Provision-Entities",
-    "Provision-EntityAttributes", "Provision-TemporalEntity",
-    "Provision-TemporalEntityAttributes", "Subscription", "ContextSource",
-    "DistributedOperations", "jsonldContext",
+    "CommonBehaviours",
+    "ContextInformation-Consumption", "ContextInformation-Provision",
+    "ContextInformation-Subscription",
+    "ContextSource", "jsonldContext",
+    "DistributedOperations", "IOP",
 ]
 LEFT_OUT_REASON = {
 }

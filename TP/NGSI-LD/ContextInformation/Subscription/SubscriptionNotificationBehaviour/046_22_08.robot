@@ -21,7 +21,7 @@ ${entity_expectation_file_path}=        entity-deleted-name-attribute-instance-n
 *** Test Cases ***
 046_22_08 Check That A Notification Is Sent With Matching Entity
     [Documentation]    Delete all instances of an attribute and check the received notification
-    [Tags]    sub-notification    5_8_6    4_5_5    since_v1.6.1
+    [Tags]    sub-notification    5_8_6    4_5_5    since_v1.6.1    deferred-broker-fix
 
     ${response}=    Delete Entity Attributes
     ...    entityId=${entity_id}

@@ -57,14 +57,10 @@ Dependencies
 **Python version**: >=3.8
 
 
-Installation
+Setup
 ============
 
-Installation using pip3 tool:
-
-.. code:: bash
-
-    $ pip3 install robotframework-httpctrl
+Make sure to add the src/ directory to your PYTHONPATH. This allows Python and Robot Framework to correctly locate the HttpCtrl modules.
 
 
 Brief Overview of the Library Content

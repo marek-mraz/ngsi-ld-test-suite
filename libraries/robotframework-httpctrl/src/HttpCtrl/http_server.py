@@ -12,7 +12,7 @@ import ipaddress
 import socket
 import threading
 
-from socketserver import TCPServer
+from socketserver import TCPServer, ThreadingTCPServer
 
 from robot.api import logger
 
@@ -21,8 +21,9 @@ from HttpCtrl.internal_messages import TerminationRequest
 from HttpCtrl.response_storage import ResponseStorage
 
 
-class TCPServerIPv6(TCPServer):
+class TCPServerIPv6(ThreadingTCPServer):
     address_family = socket.AF_INET6
+    daemon_threads = True
 
 
 class HttpServer:
@@ -100,8 +101,9 @@ class HttpServer:
 
 
     def __create_ipv4_tcp_server(self):
-        TCPServer.allow_reuse_address = True
-        tcp_server = TCPServer((self.__host, self.__port), self.__handler)
+        ThreadingTCPServer.allow_reuse_address = True
+        ThreadingTCPServer.daemon_threads = True
+        tcp_server = ThreadingTCPServer((self.__host, self.__port), self.__handler)
 
         logger.info("IPv4 TCP server '%s:%s' is created for HTTP." % (self.__host, str(self.__port)))
 

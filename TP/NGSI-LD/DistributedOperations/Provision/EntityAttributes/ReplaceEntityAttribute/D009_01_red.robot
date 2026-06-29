@@ -77,7 +77,7 @@ Setup Registration And Start Context Source Mock Server
     ${registration_id2}=    Generate Random CSR Id
     Set Suite Variable    ${registration_id2}
     ${registration_payload2}=    Prepare Context Source Registration From File
-    ...    ${registration_id}
+    ...    ${registration_id2}
     ...    ${registration_payload_file_path}
     ...    entity_id=${entity_id}
     ...    mode=redirect

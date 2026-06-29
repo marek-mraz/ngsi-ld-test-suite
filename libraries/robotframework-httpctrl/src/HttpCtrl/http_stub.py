@@ -10,7 +10,7 @@ Copyright: The 3-Clause BSD License
 
 from threading import Lock
 import json
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, unquote
 from HttpCtrl.utils.singleton import Singleton
 
 
@@ -22,7 +22,11 @@ class HttpStubCriteria:
 
         self.url = kwargs.get('url', None)
         if self.url is not None:
-            self.url = self.url.lower()
+            # Normalise percent-encoding before matching: a forwarded query carries the Entity id with
+            # its colons percent-encoded (id=urn%3Angsi-ld%3A...), while stubs are registered with raw
+            # colons (id=urn:ngsi-ld:...). Colons are legal unencoded in a query (RFC 3986), so decode
+            # both sides to compare like-for-like — otherwise the substring checks below never match.
+            self.url = unquote(self.url).lower()
 
 
     def __eq__(self, other):
@@ -92,11 +96,16 @@ class HttpStubContainer(metaclass=Singleton):
                     if criteria_url != stub_url_components[0].rstrip("/"):
                         return False
 
-                    # extraction of attributes from the response body (only works when response body is a dictionary)
-                    # return an empty array if response body is an array
+                    # Extract the Attribute names the stubbed response actually carries, so that a request
+                    # whose `attrs` ask for an Attribute the stub does not provide is rejected. The stubbed
+                    # response may be a single Entity (dict) or a (serialized) Entity Array (list); in the
+                    # list case use the first Entity rather than treating it as having no Attributes — a
+                    # forwarded query restricted to the registered Attributes (e.g. attrs=speed) legitimately
+                    # carries `attrs` and must still match an array stub that contains that Attribute.
                     parsed_body = json.loads(stub.response.get_body())
                     if isinstance(parsed_body, list):
-                        attributes = []
+                        first = parsed_body[0] if parsed_body and isinstance(parsed_body[0], dict) else {}
+                        attributes = [key.lower() for key in first]
                     else:
                         attributes = [key.lower() for key in parsed_body]
                     # criteria parameters should be separated to check if attributes are into the response body
@@ -119,6 +128,14 @@ class HttpStubContainer(metaclass=Singleton):
                 # we should check if an id is into the url
                 if "urn" in stub.criteria.url:
                     stub_url = stub.criteria.url.split("/")
+                    # The path prefix (everything before the id segment) must also match, otherwise
+                    # two stubs that differ only by prefix but share the same entity id (e.g.
+                    # /broker1/.../entities/{id} vs /broker2/.../entities/{id}, as used by redirect
+                    # tests with multiple Context Sources) would both be satisfied by either request,
+                    # mis-attributing all hits to whichever stub was registered first.
+                    stub_prefix = "/".join(stub_url[:-1]).rstrip("/")
+                    if not criteria_url_components[0].rstrip("/").startswith(stub_prefix):
+                        return False
                     id = stub_url[-1].split(":")
                     for elements in id:
                         if elements not in (criteria.url):
@@ -133,13 +150,20 @@ class HttpStubContainer(metaclass=Singleton):
                     # if the request is a query via POST, we should have a specific check
                     if stub.criteria.url == "/ngsi-ld/v1/entityoperations/query":
                         response_body = json.loads(stub.response.get_body())
+                        # the stubbed query response may be a (serialized) Entity Array; compare against
+                        # its first Entity so type/id matching works for both dict and list stub bodies.
+                        if isinstance(response_body, list):
+                            response_body = response_body[0] if response_body else {}
                         body_str = body.decode('utf-8')
                         request_body = json.loads(body_str)
-                        # check if the request body contains the same type as the response body
-                        if "type" in request_body["entities"][0] or "id" in request_body["entities"][0]:
-                            if request_body["entities"][0]["type"] != response_body["type"]:
+                        # check that the request's entity selector matches the stubbed response. Compare
+                        # each of type/id only when present in the selector — a query may select by type
+                        # alone (no id), so an unconditional ["id"] lookup would KeyError and wrongly fail.
+                        selector = request_body["entities"][0]
+                        if "type" in selector or "id" in selector:
+                            if "type" in selector and selector["type"] != response_body["type"]:
                                 return False
-                            if request_body["entities"][0]["id"] != response_body["id"]:
+                            if "id" in selector and selector["id"] != response_body["id"]:
                                 return False
                         else:
                             return False
@@ -149,13 +173,18 @@ class HttpStubContainer(metaclass=Singleton):
             # if the request is a query via POST, we should have a specific check
             if stub.criteria.url == "/ngsi-ld/v1/entityoperations/query":
                 response_body = json.loads(stub.response.get_body())
+                # the stubbed query response may be a (serialized) Entity Array; compare against its
+                # first Entity so type/id matching works for both dict and list stub bodies.
+                if isinstance(response_body, list):
+                    response_body = response_body[0] if response_body else {}
                 body_str = body.decode('utf-8')
                 request_body = json.loads(body_str)
-                # check if the request body contains the same type as the response body
-                if "type" in request_body["entities"][0] or "id" in request_body["entities"][0]:
-                    if request_body["entities"][0]["type"] != response_body["type"]:
+                # compare each of type/id only when present in the selector (a type-only query has no id).
+                selector = request_body["entities"][0]
+                if "type" in selector or "id" in selector:
+                    if "type" in selector and selector["type"] != response_body["type"]:
                         return False
-                    if request_body["entities"][0]["id"] != response_body["id"]:
+                    if "id" in selector and selector["id"] != response_body["id"]:
                         return False
                 else:
                     return False

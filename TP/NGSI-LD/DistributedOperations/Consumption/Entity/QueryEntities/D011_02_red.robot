@@ -42,11 +42,17 @@ Setup Registration And Context Source Mock Server And Query The Context Broker W
 
     ${registration_id}=    Generate Random CSR Id
     Set Suite Variable    ${registration_id}
+    IF    '${method}' == 'POST'
+        ${operations}=    Create List    queryBatch
+    ELSE
+        ${operations}=    Create List    queryEntity
+    END
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id}
     ...    ${registration_payload_file_path}
     ...    mode=redirect
     ...    endpoint=/broker1
+    ...    operations=${operations}
     ${response1}=    Create Context Source Registration With Return    ${registration_payload}
     Check Response Status Code    201    ${response1.status_code}
 

@@ -31,11 +31,17 @@ D010_01_exc Query Context Broker And Retrieve Entity By Id
     ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
 
-    ${stub_count}=    Get Stub Count    GET    /broker1/ngsi-ld/v1/entities?type=Vehicle
+    # NGSI-LD 5.7.1.4: a Retrieve Entity is forwarded to a matching Context Source via the retrieveEntity
+    # operation (GET /entities/{id}), which is exactly what this test stubs above. The previous assertion
+    # checked a queryEntity URL (entities?type=Vehicle) that can never match the registered retrieveEntity
+    # stub, so it could never pass. Assert the retrieveEntity stub was hit instead (see error.md).
+    ${stub_count}=    Get Stub Count    GET    /broker1/ngsi-ld/v1/entities/${entity_id}
     Should Be True    ${stub_count} > 0
 
-    ${body}=    Get From Dictionary    ${response.json()}    speed
-    Should Contain    ${body}    speed
+    # The forwarded retrieveEntity result must contain the `speed` Property provided by the Context
+    # Source. (The previous line asserted the speed Property *value* dict contains the literal string
+    # "speed", which it never does — see error.md.)
+    Should Contain    ${response.json()}    speed
     
 *** Keywords ***
 Create Entity And Registration On The Context Broker And Start Context Source Mock Server

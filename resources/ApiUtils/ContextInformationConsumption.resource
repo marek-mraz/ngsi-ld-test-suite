@@ -138,7 +138,11 @@ Query Entities Via POST
     &{headers}=    Create Dictionary
     Set To Dictionary    ${headers}    Content-Type    ${content_type}
     Set To Dictionary    ${headers}    Accept    ${accept}
-    IF    '${context}'!=''
+    # NGSI-LD 6.3.5: for POST with Content-Type application/ld+json the @context MUST be carried in the
+    # request body, and a JSON-LD Link header MUST NOT be present (its presence is itself BadRequestData).
+    # For application/json the @context is carried in the Link header. Honour the content type here so
+    # ld+json queries are not rejected with "@context entry missing".
+    IF    '${context}'!='' and 'ld+json' not in '${content_type}'
         ${context_link}=    Build Context Link    ${context}
         Set To Dictionary
         ...    ${headers}
@@ -165,6 +169,9 @@ Query Entities Via POST
     IF    '${join}'!=''    Set To Dictionary    ${body}    join=${join}
     IF    '${join_level}'!=''
         Set To Dictionary    ${body}    joinLevel=${joinLevel}
+    END
+    IF    '${context}'!='' and 'ld+json' in '${content_type}'
+        Set To Dictionary    ${body}    @context=${context}
     END
 
     ${response}=    POST

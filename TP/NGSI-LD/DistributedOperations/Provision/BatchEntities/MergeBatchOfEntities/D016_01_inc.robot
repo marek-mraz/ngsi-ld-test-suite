@@ -43,7 +43,11 @@ D016_01_inc Merge Batch Entities On Both Context Broker And Context Source
     ...    context=${ngsild_test_suite_context}
     ...    accept=${CONTENT_TYPE_LD_JSON}
     
-    Should Contain    ${response.json()}    speed
+    # 'speed' can never be a MEMBER of a list of entity dicts (the original assertion could
+    # never pass) - assert the merged attribute on each returned entity instead.
+    FOR    ${entity}    IN    @{response.json()}
+        Should Contain    ${entity}    speed
+    END
 
 *** Keywords ***
 Create Entity And Registration On The Context Broker And Start Context Source Mock Server

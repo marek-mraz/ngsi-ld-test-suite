@@ -38,8 +38,12 @@ D013_01_red Batch Upsert Entities With Redirect Registration Without Update Flag
     Wait for redirected request
     ${request_payload}=    Get Request Body
     ${payload}=    Evaluate    json.loads('''${request_payload}''')    json
-    Should Contain    ${payload}    ${new_first_entity}
-    Should Contain    ${payload}    ${new_second_entity}
+    # 6.3.5: the broker forwards application/json with the @context in the Link header; an
+    # inline @context in a json body is BadRequestData on the receiver - compare without it.
+    ${expected_first}=    Evaluate    {k: v for k, v in ${new_first_entity}.items() if k != '@context'}
+    ${expected_second}=    Evaluate    {k: v for k, v in ${new_second_entity}.items() if k != '@context'}
+    Should Contain    ${payload}    ${expected_first}
+    Should Contain    ${payload}    ${expected_second}
     
     ${stub_count}=    Get Stub Count    POST    /broker1/ngsi-ld/v1/entityOperations/upsert
     Should Be Equal As Integers    ${stub_count}    1

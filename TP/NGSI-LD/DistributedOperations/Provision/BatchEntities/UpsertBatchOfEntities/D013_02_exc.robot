@@ -34,14 +34,21 @@ D013_02_exc Batch Upsert Entities With Exclusive Registration With Update Flag
     ${response}=    Batch Upsert Entities    @{entities_to_be_upserted}    update_option=update
     Check Response Status Code    204    ${response.status_code}
 
+    # Wait For Request must run BEFORE the request-inspection keywords: Get Request Url Params /
+    # Get Request Body read the "current" request, which only Wait For Request sets (HttpCtrl API doc).
+    Wait for redirected request
     ${stub}=    Get Request Url Params    options
     Should Contain    ${stub}    update
 
-    Wait for redirected request
     ${request_payload}=    Get Request Body
     ${payload}=    Evaluate    json.loads('''${request_payload}''')    json
-    Should Contain    ${payload}    ${new_first_entity}
-    Should Contain    ${payload}    ${new_second_entity}
+    # Exclusive reg scopes propertyNames to 'speed' (4.3.6.1/5.6.1.4): only the matching
+    # attribute is forwarded, and the @context travels in the Link header (6.3.5) - so the
+    # forwarded fragment is {id, type, speed}, not the full entity.
+    ${expected_first}=    Evaluate    {k: v for k, v in ${new_first_entity}.items() if k in ('id', 'type', 'speed')}
+    ${expected_second}=    Evaluate    {k: v for k, v in ${new_second_entity}.items() if k in ('id', 'type', 'speed')}
+    Should Contain    ${payload}    ${expected_first}
+    Should Contain    ${payload}    ${expected_second}
     
     ${stub_count}=    Get Stub Count    POST    /broker1/ngsi-ld/v1/entityOperations/upsert
     Should Be Equal As Integers    ${stub_count}    1

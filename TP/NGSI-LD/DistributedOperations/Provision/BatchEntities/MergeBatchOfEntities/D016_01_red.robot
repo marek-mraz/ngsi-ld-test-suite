@@ -44,6 +44,14 @@ D016_01_red Merge Batch Entities On The Context Source
     ${stub_count}=    Get Stub Count    POST    /broker2/ngsi-ld/v1/entityOperations/merge
     Should Be Equal As Integers    ${stub_count}    1
 
+    # Redirect regs mean the merged data lives ONLY on the Context Source (4.3.6.3); the static
+    # mock cannot compute merges, so stub the forwarded query with the merge fragments (which
+    # carry 'speed') - same pattern as D011_02_inc.
+    @{merged_entities}=    Create List    ${new_first_entity}    ${new_second_entity}
+    ${serialized_merged}=    Convert JSON To String    ${merged_entities}
+    Set Stub Reply    GET    /broker1/ngsi-ld/v1/entities    200    ${serialized_merged}
+    Set Stub Reply    GET    /broker2/ngsi-ld/v1/entities    200    ${serialized_merged}
+
     ${expected_entities_ids}=    Catenate    SEPARATOR=,    @{entities_ids_to_be_merged}
     ${response}=    Query Entities
     ...    entity_ids=${expected_entities_ids}
@@ -51,7 +59,11 @@ D016_01_red Merge Batch Entities On The Context Source
     ...    context=${ngsild_test_suite_context}
     ...    accept=${CONTENT_TYPE_LD_JSON}
     
-    Should Contain    ${response.json()}    speed
+    # 'speed' can never be a MEMBER of a list of entity dicts (the original assertion could
+    # never pass) - assert the merged attribute on each returned entity instead.
+    FOR    ${entity}    IN    @{response.json()}
+        Should Contain    ${entity}    speed
+    END
 
 *** Keywords ***
 Create Entity And Registration On The Context Broker And Start Context Source Mock Server

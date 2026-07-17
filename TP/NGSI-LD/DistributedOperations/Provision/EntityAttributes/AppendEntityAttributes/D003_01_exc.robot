@@ -23,10 +23,13 @@ D003_01_exc Append Entity Attribute
     [Tags]    since_v1.6.1    dist-ops    4_3_3    cf_06    proxy-exclusive    4_3_6_3    5_6_3
 
     Set Stub Reply    POST    /broker1/ngsi-ld/v1/entities/${entity_id}/attrs/    204
+    # ETSI tool bug fixed: without a JSON-LD context the fragment expands against the default
+    # @context (6.3.5) and can never match the registration's compound-context propertyNames.
     ${response}=    Append Entity Attributes
     ...    ${entity_id}
     ...    ${fragment_filename}
     ...    ${CONTENT_TYPE_JSON}
+    ...    context=${ngsild_test_suite_context}
     Check Response Status Code    204    ${response.status_code}
 
     ${stub_count}=    Get Stub Count    POST    /broker1/ngsi-ld/v1/entities/${entity_id}/attrs/

@@ -42,8 +42,12 @@ ${response}                                 ${EMPTY}
 *** Keywords ***
 Append Entity Attributes
     [Tags]    actor_context-producer
-    [Arguments]    ${id}    ${fragment_filename}    ${content_type}
+    [Arguments]    ${id}    ${fragment_filename}    ${content_type}    ${context}=${EMPTY}
     &{headers}=    Create Dictionary    Content-Type=${content_type}
+    IF    '${context}'!=''
+        ${context_link}=    Build Context Link    ${context}
+        Set To Dictionary    ${headers}    Link=${context_link}
+    END
     ${file_content}=    Get File    ${EXECDIR}/data/entities/fragmentEntities/${fragment_filename}
     ${response}=    POST
     ...    url=${url}/${ENTITIES_ENDPOINT_PATH}${id}/attrs/
@@ -55,8 +59,12 @@ Append Entity Attributes
 
 Append Entity Attributes With Parameters
     [Tags]    actor_context-producer
-    [Arguments]    ${id}    ${fragment_filename}    ${content_type}    ${options}
+    [Arguments]    ${id}    ${fragment_filename}    ${content_type}    ${options}    ${context}=${EMPTY}
     &{headers}=    Create Dictionary    Content-Type=${content_type}
+    IF    '${context}'!=''
+        ${context_link}=    Build Context Link    ${context}
+        Set To Dictionary    ${headers}    Link=${context_link}
+    END
     ${fragment_payload}=    Load JSON From File    ${EXECDIR}/data/entities/fragmentEntities/${fragment_filename}
     ${response}=    POST
     ...    url=${url}/${ENTITIES_ENDPOINT_PATH}${id}/attrs/?options=${options}

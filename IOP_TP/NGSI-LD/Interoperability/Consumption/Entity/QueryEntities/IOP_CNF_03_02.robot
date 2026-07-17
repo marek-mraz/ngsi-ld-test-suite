@@ -35,31 +35,29 @@ IOP_CNF_03_02 Query Entities Of Type OffStreetParking And Vehicle with attrs
     Check Response Status Code    200    ${response.status_code}
 
     &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${first_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:1
-    ${second_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:2
-    ${first_vehicle}=    Get From Dictionary    ${payload}    Vehicle:1
+    ${first_parking_payload}=    Get From Dictionary    ${payload}    ${parking_entity_id1}
+    ${second_parking_payload}=    Get From Dictionary    ${payload}    ${parking_entity_id2}
+    ${first_vehicle}=    Get From Dictionary    ${payload}    ${vehicle_entity_id1}
     Should Contain    ${first_parking_payload}    location
     Should Contain    ${second_parking_payload}    location
 
     #Client queries all entities with type OffStreetParking and Vehicle in B, C and D.
     ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_entity1}=    Get From Dictionary    ${payload}    Vehicle:1
+    ${expected_entity1}=    Get From Dictionary    ${payload}    ${vehicle_entity_id1}
 
     ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_entity2}=    Get From Dictionary    ${payload}    OffStreetParking:1
+    ${expected_entity2}=    Get From Dictionary    ${payload}    ${parking_entity_id1}
 
     ${response}=    Query Entities    entity_types=OffStreetParking,Vehicle    attrs=location    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_entity3}=    Get From Dictionary    ${payload}    OffStreetParking:1
-    ${expected_entity4}=    Get From Dictionary    ${payload}    OffStreetParking:2
+    ${expected_entity3}=    Get From Dictionary    ${payload}    ${parking_entity_id1}
+    ${expected_entity4}=    Get From Dictionary    ${payload}    ${parking_entity_id2}
 
-    #Client checks that the attributes of the entities in A are the same as the ones in B, C and D.
-    Should Be Equal    ${first_parking_payload}[name]    ${expected_entity2}[name]
+    #Client checks that the location of the entities in A matches B, C and D. The query is
+    #attrs=location (5.7.2), so ONLY location can be asserted — other attrs are filtered out.
     Should Be Equal    ${first_parking_payload}[location]    ${expected_entity2}[location]
-    Should Be Equal    ${first_parking_payload}[availableSpotsNumber]    ${expected_entity3}[availableSpotsNumber]
-    Should Be Equal    ${first_parking_payload}[totalSpotsNumber]    ${expected_entity3}[totalSpotsNumber]
     Should Be Equal    ${second_parking_payload}    ${expected_entity4}
     Should Be Equal    ${first_vehicle}    ${expected_entity1}
 
@@ -91,7 +89,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id1}
     ...    ${auxiliary_registration_payload_file_path}
     ...    entity_id=${vehicle_entity_id1}
-    ...    endpoint=${b2_url}
+    ...    broker_url=${b2_url}
     ...    mode=auxiliary
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -102,7 +100,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id2}
     ...    ${inclusive_registration_payload_file_path}
     ...    entity_id=${parking_entity_id1}
-    ...    endpoint=${b3_url}
+    ...    broker_url=${b3_url}
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -113,7 +111,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id3}
     ...    ${inclusive_registration_payload_file_path}
     ...    entity_id=${vehicle_entity_id2}
-    ...    endpoint=${b4_url}
+    ...    broker_url=${b4_url}
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -124,7 +122,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id4}
     ...    ${inclusive_registration_payload_file_path}
     ...    entity_id=${parking_entity_id1}
-    ...    endpoint=${b3_url}
+    ...    broker_url=${b3_url}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 
@@ -134,10 +132,14 @@ Setup Initial Context Source Registrations
     ...    ${registration_id5}
     ...    ${inclusive_registration_payload_file_path}
     ...    entity_id=${parking_entity_id2}
-    ...    endpoint=${b4_url}
+    ...    broker_url=${b4_url}
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}

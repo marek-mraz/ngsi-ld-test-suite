@@ -16,7 +16,10 @@ ${no_location_entity_payload_filename}               interoperability/offstreet-
 ${full_entity_payload_filename}                      interoperability/offstreet-parking1-full.jsonld
 ${inclusive_registration_payload_file_path}          csourceRegistrations/interoperability/context-source-registration-inclusive-1.jsonld
 ${auxiliary_registration_payload_file_path}          csourceRegistrations/interoperability/context-source-registration-auxiliary-2.jsonld
-${exclusive_registration_payload_file_path}          csourceRegistrations/interoperability/context-source-registration-exclusive-1.jsonld
+# exclusive-3 registers propertyNames [location] — the test asserts A gets E's location via C,
+# which is impossible with exclusive-1 (registers only totalSpotsNumber; forwarded requests are
+# narrowed to registered attrs per NGSI-LD 4.3.6.1).
+${exclusive_registration_payload_file_path}          csourceRegistrations/interoperability/context-source-registration-exclusive-3.jsonld
 ${first_redirect_registration_payload_file_path}     csourceRegistrations/interoperability/context-source-registration-redirect-1.jsonld
 ${second_redirect_registration_payload_file_path}    csourceRegistrations/interoperability/context-source-registration-redirect-2.jsonld
 ${b1_url}
@@ -32,14 +35,14 @@ IOP_CNF_04_01 Retrieve OffStreetParking:1
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    proxy-redirect    proxy-exclusive    4_3_6    5_7_1
 
     #Client retrieves OffStreetParking:1 in A and checks for a successful response.
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     ${payload}=    Set To Dictionary    ${response.json()}
 
     #Client retrieves OffStreetParking:1 in D and E.
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b4_url}
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     ${first_expected_payload}=    Set To Dictionary    ${response.json()}
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b5_url}
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b5_url}    context=${ngsild_test_suite_context}
     ${second_expected_payload}=    Set To Dictionary    ${response.json()}
 
     #Client checks that the entity returned from A has attributes from the entity in D and E.
@@ -110,6 +113,10 @@ Setup Initial Context Source Registrations
     ...    mode=exclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b3_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}

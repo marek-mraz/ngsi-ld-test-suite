@@ -36,25 +36,26 @@ IOP_CNF_04_01 Create OffStreetParking:1
     Check Response Status Code    201    ${response.status_code}
 
     #Agent checks, with local=true, that the entity is created in A
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     #Agent checks, with local=true, that the entity was not created in B
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    404    ${response.status_code}
     #Agent checks, with local=true, that the entity is created in C
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b3_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     #Agent checks, with local=true, that the entity was not created in D
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b4_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    404    ${response.status_code}
     #Agent checks, with local=true, that the entity was not created in E
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b5_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b5_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    404    ${response.status_code}
 
 *** Keywords ***
 Setup Initial Context Source Registrations
     ${entity_id}=    Generate Random Parking Entity Id
     Set Suite Variable    ${entity_id}
+    ${create_ops}=    Create List    createEntity
     
     ${registration_id1}=     Generate Random CSR Id
     Set Suite Variable    ${registration_id1}
@@ -97,6 +98,10 @@ Setup Initial Context Source Registrations
     ...    entity_id=${entity_id}
     ...    broker_url=${b3_url}
     ...    mode=inclusive
+    # default operations = federationOps (4.20) excludes createEntity — declare it so the
+    # create is distributed to C per the choreography (C's own exclusive reg to E keeps the
+    # default ops, so C does NOT forward onward and E stays 404).
+    ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 
@@ -111,6 +116,10 @@ Setup Initial Context Source Registrations
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b3_url}
     Check Response Status Code    201    ${response.status_code}
 
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
+
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}
     Delete Context Source Registration    ${registration_id2}    broker_url=${b2_url}
@@ -118,3 +127,4 @@ Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id4}    broker_url=${b1_url}
     Delete Context Source Registration    ${registration_id5}    broker_url=${b3_url}
     Delete Entity    ${entity_id}    broker_url=${b1_url}
+    Delete Entity    ${entity_id}    broker_url=${b3_url}

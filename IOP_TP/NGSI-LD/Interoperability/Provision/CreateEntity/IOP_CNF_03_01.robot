@@ -40,7 +40,7 @@ IOP_CNF_03_01 Create OffStreetParking:1
     Should Be Equal    ${response.json()}    ${expected_payload}
 
     #Agent checks, with local=true, that the entity was not created in B
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    404    ${response.status_code}
 
     #Agent checks, with local=true, that the entity is created in C
@@ -49,7 +49,7 @@ IOP_CNF_03_01 Create OffStreetParking:1
     Should Be Equal    ${response.json()}    ${expected_payload}
 
     #Agent checks, with local=true, that the entity is created in D and only contains the properties availableSpotsNumber and totalSpotsNumber
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b4_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Contain    ${response.json()}    availableSpotsNumber
     Should Contain    ${response.json()}    totalSpotsNumber
@@ -81,6 +81,8 @@ Setup Initial Context Source Registrations
     ...    entity_id=${entity_id}
     ...    broker_url=${b3_url}
     ...    mode=inclusive
+    # default operations = federationOps (4.20) excludes createEntity — declare it so the
+    # create is distributed per the choreography.
     ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -93,12 +95,20 @@ Setup Initial Context Source Registrations
     ...    entity_id=${entity_id}
     ...    broker_url=${b4_url}
     ...    mode=inclusive
+    # default operations = federationOps (4.20) excludes createEntity — declare it so the
+    # create is distributed per the choreography.
     ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}
     Delete Context Source Registration    ${registration_id2}    broker_url=${b1_url}
     Delete Context Source Registration    ${registration_id3}    broker_url=${b1_url}
     Delete Entity    ${entity_id}    broker_url=${b1_url}
+    Delete Entity    ${entity_id}    broker_url=${b3_url}
+    Delete Entity    ${entity_id}    broker_url=${b4_url}

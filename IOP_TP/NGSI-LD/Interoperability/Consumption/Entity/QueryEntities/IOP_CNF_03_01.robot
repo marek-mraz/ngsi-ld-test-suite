@@ -34,21 +34,21 @@ IOP_CNF_03_01 Query Entities Of Type OffStreetParking Via GET
     Check Response Status Code    200    ${response.status_code}
 
     &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${first_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:1
-    ${second_parking_payload}=    Get From Dictionary    ${payload}    OffStreetParking:2
+    ${first_parking_payload}=    Get From Dictionary    ${payload}    ${entity_id}
+    ${second_parking_payload}=    Get From Dictionary    ${payload}    ${second_entity_id}
 
     #Client queries all entities with type OffStreetParking in B, C and D.
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_parking1}=    Get From Dictionary    ${payload}    OffStreetParking:2
+    ${expected_parking1}=    Get From Dictionary    ${payload}    ${second_entity_id}
 
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_parking2}=    Get From Dictionary    ${payload}    OffStreetParking:1
+    ${expected_parking2}=    Get From Dictionary    ${payload}    ${entity_id}
 
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${expected_parking3}=    Get From Dictionary    ${payload}    OffStreetParking:2
+    ${expected_parking3}=    Get From Dictionary    ${payload}    ${second_entity_id}
 
     #Client checks that the attributes of the entities in A are the same as the ones in B, C and D.
     Should Be Equal    ${first_parking_payload}[name]    ${expected_parking2}[name]
@@ -61,12 +61,14 @@ IOP_CNF_03_01 Query Entities Of Type OffStreetParking Via GET
 Setup Initial Context Source Registrations
     ${entity_id}=    Generate Random Parking Entity Id
     Set Suite Variable    ${entity_id}
+    ${second_entity_id}=    Generate Random Parking Entity Id
+    Set Suite Variable    ${second_entity_id}
 
-    ${response}=    Create Entity    ${offstreet_no_location_payload_filename}    ${entity_id}    broker_url=${b2_url}
+    ${response}=    Create Entity    ${offstreet_no_location_payload_filename}    ${second_entity_id}    broker_url=${b2_url}
     Check Response Status Code    201    ${response.status_code}
     ${response}=    Create Entity    ${first_full_offstreet_payload_filename}    ${entity_id}    broker_url=${b3_url}
     Check Response Status Code    201    ${response.status_code}
-    ${response}=    Create Entity    ${second_full_offstreet_payload_filename}    ${entity_id}    broker_url=${b4_url}
+    ${response}=    Create Entity    ${second_full_offstreet_payload_filename}    ${second_entity_id}    broker_url=${b4_url}
     Check Response Status Code    201    ${response.status_code}
 
     ${registration_id1}=    Generate Random CSR Id
@@ -74,8 +76,8 @@ Setup Initial Context Source Registrations
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id1}
     ...    ${auxiliary_registration_payload_file_path}
-    ...    entity_id=${entity_id}
-    ...    endpoint=${b2_url}
+    ...    entity_id=${second_entity_id}
+    ...    broker_url=${b2_url}
     ...    mode=auxiliary
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -86,7 +88,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id2}
     ...    ${first_inclusive_registration_payload_file_path}
     ...    entity_id=${entity_id}
-    ...    endpoint=${b3_url}
+    ...    broker_url=${b3_url}
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -96,15 +98,19 @@ Setup Initial Context Source Registrations
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id3}
     ...    ${second_inclusive_registration_payload_file_path}
-    ...    entity_id=${entity_id}
-    ...    endpoint=${b4_url}
+    ...    entity_id=${second_entity_id}
+    ...    broker_url=${b4_url}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}
     Delete Context Source Registration    ${registration_id2}    broker_url=${b1_url}
     Delete Context Source Registration    ${registration_id3}    broker_url=${b1_url}
-    Delete Entity    ${entity_id}    broker_url=${b2_url}
+    Delete Entity    ${second_entity_id}    broker_url=${b2_url}
     Delete Entity    ${entity_id}    broker_url=${b3_url}
-    Delete Entity    ${entity_id}    broker_url=${b4_url}
+    Delete Entity    ${second_entity_id}    broker_url=${b4_url}

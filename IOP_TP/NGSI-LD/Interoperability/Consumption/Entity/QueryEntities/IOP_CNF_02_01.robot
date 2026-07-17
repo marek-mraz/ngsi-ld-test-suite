@@ -34,25 +34,26 @@ IOP_CNF_02_01 Query Entities Of Type OffStreetParking Via GET
     #Agent queries all entities with type OffStreetParking in A and checks for a successful response not containing the name attribute.
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    @{entities_b1}=    Set Variable   ${response.json()}
-    ${first_payload}=    Get From List   ${entities_b1}    0
-    ${second_payload}=    Get From List   ${entities_b1}    1
+    # Responses are unordered — key by entity id instead of list position.
+    &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
+    ${first_payload}=    Get From Dictionary    ${payload}    ${entity_id}
+    ${second_payload}=    Get From Dictionary    ${payload}    ${second_entity_id}
     Should Not Contain    ${first_payload}   name
     Should Not Contain    ${second_payload}    name
 
     #Agent queries all entities with type OffStreetParking in B, C and D
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}    context=${ngsild_test_suite_context}
-    @{entities_b2}=    Set Variable    ${response.json()}
-    ${first_b2_payload}=    Get From List   ${entities_b2}    0
-    ${second_b2_payload}=    Get From List   ${entities_b2}    1
+    &{entities_b2}=    Evaluate    {i['id']: i for i in ${response.json()}}
+    ${first_b2_payload}=    Get From Dictionary    ${entities_b2}    ${entity_id}
+    ${second_b2_payload}=    Get From Dictionary    ${entities_b2}    ${second_entity_id}
 
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}    context=${ngsild_test_suite_context}
-    @{entities_b3}=    Set Variable    ${response.json()}
-    ${b3_payload}=    Get From List   ${entities_b3}    0
+    &{entities_b3}=    Evaluate    {i['id']: i for i in ${response.json()}}
+    ${b3_payload}=    Get From Dictionary    ${entities_b3}    ${entity_id}
 
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b4_url}    context=${ngsild_test_suite_context}
-    @{entities_b4}=    Set Variable    ${response.json()}
-    ${b4_payload}=    Get From List   ${entities_b4}    0
+    &{entities_b4}=    Evaluate    {i['id']: i for i in ${response.json()}}
+    ${b4_payload}=    Get From Dictionary    ${entities_b4}    ${second_entity_id}
     
     #Agent checks that OffStreetParking1 in A has the same availableSpotsNumber and totalSpotsNumber as the one in B and the same location attribute found in C. The OffStreetParking2 entity in A contains the attributes of both OffStreetParking2 availableSpotsNumber and totalSpotsNumber in C and the same location found in D.
     Should Be Equal    ${first_payload}[availableSpotsNumber]    ${first_b2_payload}[availableSpotsNumber]
@@ -77,7 +78,7 @@ Setup Initial Context Source Registrations
     Check Response Status Code    201    ${response.status_code}
     ${response}=    Create Entity    ${second_full_entity_payload_filename}    ${second_entity_id}    broker_url=${b3_url}
     Check Response Status Code    201    ${response.status_code}
-    ${response}=    Create Entity    ${location_name_payload_filename}    ${entity_id}    broker_url=${b4_url}
+    ${response}=    Create Entity    ${location_name_payload_filename}    ${second_entity_id}    broker_url=${b4_url}
     Check Response Status Code    201    ${response.status_code}
 
     ${registration_id1}=     Generate Random CSR Id
@@ -129,11 +130,15 @@ Setup Initial Context Source Registrations
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id5}
     ...    ${second_redirect_registration_payload_file_path}
-    ...    entity_id=${entity_id}
+    ...    entity_id=${second_entity_id}
     ...    broker_url=${b4_url}
     ...    mode=redirect
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}
@@ -145,4 +150,4 @@ Delete Entities And Delete Registrations
     Delete Entity    ${second_entity_id}    broker_url=${b2_url}
     Delete Entity    ${entity_id}    broker_url=${b3_url}
     Delete Entity    ${second_entity_id}    broker_url=${b3_url}
-    Delete Entity    ${entity_id}    broker_url=${b4_url}
+    Delete Entity    ${second_entity_id}    broker_url=${b4_url}

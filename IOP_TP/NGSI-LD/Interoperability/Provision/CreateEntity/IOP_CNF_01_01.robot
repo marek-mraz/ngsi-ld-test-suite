@@ -40,7 +40,7 @@ IOP_CNF_01_01 Create OffStreetParking:1
     Should Be Equal    ${response.json()}    ${expected_payload}
 
     #Agent checks, with local=true, that the entity is created in B and only contains the attributes availableSpotsNumber and totalSpotsNumber
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Contain    ${response.json()}    availableSpotsNumber
     Should Contain    ${response.json()}    totalSpotsNumber
@@ -48,7 +48,7 @@ IOP_CNF_01_01 Create OffStreetParking:1
     Should Not Contain    ${response.json()}    location
 
     #Agent checks, with local=true, that the entity is not created in C
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b3_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    404    ${response.status_code}
 
 *** Keywords ***
@@ -83,6 +83,10 @@ Setup Initial Context Source Registrations
     ...    mode=exclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}

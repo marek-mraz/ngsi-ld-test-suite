@@ -95,7 +95,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id1}
     ...    ${first_inclusive_registration_payload_file_path}
     ...    entity_id=${first_parking_entity_id}
-    ...    endpoint=${b2_url}
+    ...    broker_url=${b2_url}
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -106,7 +106,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id2}
     ...    ${second_inclusive_registration_payload_file_path}
     ...    entity_id=${first_vehicle_entity_id}
-    ...    endpoint=${b2_url}
+    ...    broker_url=${b2_url}
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
@@ -117,7 +117,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id3}
     ...    ${first_redirect_registration_payload_file_path}
     ...    entity_id=${first_parking_entity_id}
-    ...    endpoint=${b3_url}
+    ...    broker_url=${b3_url}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 
@@ -127,7 +127,7 @@ Setup Initial Context Source Registrations
     ...    ${registration_id4}
     ...    ${second_redirect_registration_payload_file_path}
     ...    entity_id=${second_parking_entity_id}
-    ...    endpoint=${b4_url}
+    ...    broker_url=${b4_url}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
 
@@ -137,9 +137,13 @@ Setup Initial Context Source Registrations
     ...    ${registration_id5}
     ...    ${third_redirect_registration_payload_file_path}
     ...    entity_id=${second_vehicle_entity_id}
-    ...    endpoint=${b4_url}
+    ...    broker_url=${b4_url}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}

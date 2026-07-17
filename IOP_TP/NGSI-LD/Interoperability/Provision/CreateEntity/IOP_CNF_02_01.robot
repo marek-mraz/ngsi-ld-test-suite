@@ -32,18 +32,18 @@ IOP_CNF_02_01 Create OffStreetParking:1
     Check Response Status Code    201    ${response.status_code}
     
     #Agent checks, with local=true, that the entity is created in A and does not contain the location property
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Not Contain    ${response.json()}    location
 
     #Agent checks, with local=true, that the entity is created in B and does not contain the location and name properties
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Not Contain    ${response.json()}    location
     Should Not Contain    ${response.json()}    name
 
     #Agent checks, with local=true, that the entity is created in C and only contains the location property
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b3_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Contain    ${response.json()}    location
     Should Not Contain    ${response.json()}    name
@@ -51,7 +51,7 @@ IOP_CNF_02_01 Create OffStreetParking:1
     Should Not Contain    ${response.json()}    totalSpotsNumber
 
     #Agent checks, with local=true, that the entity is created in D and only contains the location property
-    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b4_url}
+    ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     Should Contain    ${response.json()}    location
     Should Not Contain    ${response.json()}    name
@@ -99,6 +99,10 @@ Setup Initial Context Source Registrations
     ...    operations=${create_ops}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}

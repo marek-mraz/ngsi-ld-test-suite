@@ -30,34 +30,38 @@ IOP_CNF_03_01 Retrieve OffStreetParking:1
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    4_3_6    5_7_1
 
     #Client retrieves OffStreetParking:1 in A and checks for a partial successful. The entity returned should not contain the location attribute.
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}    # NGSI-LD 6.5.3.1: Retrieve Entity has no 207 response
     ${payload}=    Set To Dictionary    ${response.json()}
     Should Not Contain    ${payload}    location
 
     #Client retrieves OffStreetParking:1 in B, C and D with the local=true flag.
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}    local=true
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}    local=true    context=${ngsild_test_suite_context}
     ${first_payload}=    Set To Dictionary    ${response.json()}
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b2_url}    local=true
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b2_url}    local=true    context=${ngsild_test_suite_context}
     ${second_payload}=    Set To Dictionary    ${response.json()}
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b3_url}    local=true
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b3_url}    local=true    context=${ngsild_test_suite_context}
     ${third_payload}=    Set To Dictionary    ${response.json()}
 
     #Client checks that the entity returned from A should have the same attributes as the one in B and it should not contain the attribute location found in C.
     Should Be Equal    ${payload}    ${first_payload}
-    Should Not Contain    ${payload}[location]    ${second_payload}[location]
+    # B (auxiliary, propertyNames avail/total) DOES hold location; it must not leak into A.
+    # (A-has-no-location is already asserted above; payload[location] would KeyError here.)
+    Should Contain    ${second_payload}    location
 
 *** Keywords ***
 Setup Initial Context Source Registrations
     ${entity_id}=    Generate Random Parking Entity Id
     Set Suite Variable    ${entity_id}
+    ${second_entity_id}=    Generate Random Parking Entity Id
+    Set Suite Variable    ${second_entity_id}
     ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
     ${response}=    Create Entity    ${first_full_entity_payload_filename}    ${entity_id}    broker_url=${b2_url}
     Check Response Status Code    201    ${response.status_code}
     ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}    broker_url=${b3_url}
     Check Response Status Code    201    ${response.status_code}
-    ${response}=    Create Entity    ${second_full_entity_payload_filename}    ${entity_id}    broker_url=${b4_url}
+    ${response}=    Create Entity    ${second_full_entity_payload_filename}    ${second_entity_id}    broker_url=${b4_url}
     Check Response Status Code    201    ${response.status_code}
 
     ${registration_id1}=     Generate Random CSR Id
@@ -87,11 +91,15 @@ Setup Initial Context Source Registrations
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id3}
     ...    ${second_inclusive_registration_payload_file_path}
-    ...    entity_id=${entity_id}
+    ...    entity_id=${second_entity_id}
     ...    broker_url=${b4_url}
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}
@@ -99,4 +107,4 @@ Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id3}    broker_url=${b1_url}
     Delete Entity    ${entity_id}    broker_url=${b2_url}
     Delete Entity    ${entity_id}    broker_url=${b3_url}
-    Delete Entity    ${entity_id}    broker_url=${b4_url}
+    Delete Entity    ${second_entity_id}    broker_url=${b4_url}

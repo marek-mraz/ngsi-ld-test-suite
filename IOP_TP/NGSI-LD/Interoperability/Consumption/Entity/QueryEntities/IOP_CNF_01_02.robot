@@ -33,24 +33,31 @@ IOP_CNF_01_01 Query Entities Of Type OffStreetParking Via POST
     ${response}=    Query Entities Via POST   entities=${entities}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     @{payload}=    Set Variable   ${response.json()}
-    Should Contain    ${payload}\[OffStreetParking1]    availableSpotsNumber
-    Should Contain    ${payload}\[OffStreetParking1]    totalSpotsNumber
-    Should Contain    ${payload}\[OffStreetParking2]    availableSpotsNumber
-    Should Contain    ${payload}\[OffStreetParking2]    location
+    # Registered attrs only (5.2.10/5.12): inclusive→B covers availableSpotsNumber+totalSpotsNumber,
+    # exclusive→C covers location. Merged entity in A = union of those.
+    ${merged}=    Evaluate    next(e for e in $payload if e['id'] == '${entity_id}')
+    ${second_merged}=    Evaluate    next(e for e in $payload if e['id'] == '${second_entity_id}')
+    Dictionary Should Contain Key    ${merged}    availableSpotsNumber
+    Dictionary Should Contain Key    ${merged}    totalSpotsNumber
+    Dictionary Should Contain Key    ${merged}    location
+    Dictionary Should Contain Key    ${second_merged}    availableSpotsNumber
 
     #Agent queries all entities with type OffStreetParking in B and C
     ${response}=    Query Entities Via POST   entities=${entities}    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     @{first_expected_payload}=    Set Variable    ${response.json()}
     Check Response Body Containing Entities URIS set to    ${entities}    ${response.json()}
 
-    ${response}=    Query Entities Via POST   entities=${entity_id}    broker_url=${b3_url}    context=${ngsild_test_suite_context}
+    @{single_entity_id}=    Create List    ${entity_id}
+    ${response}=    Query Entities Via POST   entities=${single_entity_id}    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     @{second_expected_payload}=    Set Variable    ${response.json()}
-    Check Response Body Containing Entities URIS set to    ${entity_id}    ${response.json()}
+    Check Response Body Containing Entities URIS set to    ${single_entity_id}    ${response.json()}
 
-    #Agent checks that OffStreetParking1 in A is the same as the one in B and that OffStreetParking2 in A contains the attributes of both OffStreetParking2 in B and C.
-    Should Be Equal    ${payload}\[OffStreetParking1]    ${first_expected_payload}\[OffStreetParking1]
-    Should Contain    ${payload}\[OffStreetParking2]    ${first_expected_payload}\[OffStreetParking2][totalSpotsNumber]
-    Should Contain    ${payload}\[OffStreetParking2]    ${second_expected_payload}\[OffStreetParking2][location]
+    #Agent checks that A's merged entity carries B's registered attribute values and C's registered location.
+    ${b_entity}=    Evaluate    next(e for e in $first_expected_payload if e['id'] == '${entity_id}')
+    ${c_entity}=    Evaluate    next(e for e in $second_expected_payload if e['id'] == '${entity_id}')
+    Should Be Equal    ${merged}[availableSpotsNumber]    ${b_entity}[availableSpotsNumber]
+    Should Be Equal    ${merged}[totalSpotsNumber]    ${b_entity}[totalSpotsNumber]
+    Should Be Equal    ${merged}[location]    ${c_entity}[location]
 
 *** Keywords ***
 Setup Initial Context Source Registrations
@@ -97,6 +104,10 @@ Setup Initial Context Source Registrations
     ...    mode=exclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}

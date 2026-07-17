@@ -30,13 +30,13 @@ IOP_CNF_03_02 Retrieve OffStreetParking:1 Location Attribute
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    4_3_6    5_7_1
 
     #Client retrieves OffStreetParking:1 in A and checks for a partial successful. The entity returned should only contain the location attribute.
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}    # NGSI-LD 6.5.3.1: Retrieve Entity has no 207 response
     ${payload}=    Set To Dictionary    ${response.json()}
     Should Contain    ${payload}    location
 
     #Client retrieves OffStreetParking:1 in C with local=true.
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b3_url}    local=true
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b3_url}    local=true    context=${ngsild_test_suite_context}
     ${expected_payload}=    Set To Dictionary    ${response.json()}
 
     #Client checks that the location attribute in A is the same as the one in C.
@@ -87,6 +87,10 @@ Setup Initial Context Source Registrations
     ...    mode=inclusive
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
+
+    # Registrations propagate asynchronously to the broker's in-VM registry cache — an
+    # immediate query/create can race ahead of the last registration (flaky aux/inclusive merges).
+    Sleep    1s
 
 Delete Entities And Delete Registrations
     Delete Context Source Registration    ${registration_id1}    broker_url=${b1_url}

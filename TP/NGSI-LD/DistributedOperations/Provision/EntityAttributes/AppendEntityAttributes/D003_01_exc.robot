@@ -2,6 +2,7 @@
 Documentation       Check that when appending entity attributes to an entity with an exclusive registration, the attributes managed locally are updated on the Context Broker, while attributes managed with the exclusive registration are updated in the Context Source.
 
 Resource            ${EXECDIR}/resources/ApiUtils/Common.resource
+Resource            ${EXECDIR}/resources/ApiUtils/ContextInformationConsumption.resource
 Resource            ${EXECDIR}/resources/ApiUtils/ContextInformationProvision.resource
 Resource            ${EXECDIR}/resources/ApiUtils/ContextSourceRegistration.resource
 Resource            ${EXECDIR}/resources/AssertionUtils.resource
@@ -36,8 +37,9 @@ D003_01_exc Append Entity Attribute
     Should Be Equal As Integers    ${stub_count}    1
 
     ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}    local=true
-    ${body}=    Get From Dictionary    ${response.json()}    speed
-    Should Not Contain    ${body}    speed
+    # 4.3.6.3: the exclusive CS owns 'speed' - a local retrieve legitimately has no such key.
+    # Get From Dictionary THROWS on an absent key, so the original assertion could never verify this.
+    Dictionary Should Not Contain Key    ${response.json()}    speed
 
 *** Keywords ***
 Create Entity And Registration On The Context Broker And Start Context Source Mock Server

@@ -37,8 +37,9 @@ D007_01_exc Replace Entity
     Should Be Equal As Integers    ${stub_count}    1
 
     ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}    local=true
-    ${body}=    Get From Dictionary    ${response.json()}    speed
-    Should Not Contain    ${body}    speed
+    # 4.3.6.3: the exclusive CS owns 'speed' - a local retrieve legitimately has no such key.
+    # Get From Dictionary THROWS on an absent key, so the original assertion could never verify this.
+    Dictionary Should Not Contain Key    ${response.json()}    speed
 
 
 *** Keywords ***

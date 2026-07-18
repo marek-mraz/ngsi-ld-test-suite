@@ -32,8 +32,12 @@ IOP_CNF_04_01 Create OffStreetParking:1
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    proxy-exclusive    proxy-redirect    4_3_6    5_6_1
 
     #Create the full entity of OffStreetParking:1 in A and check for a successful response
+    # 5.6.1.4: C's exclusive reg to E keeps the default read-only federationOps, so C answers the
+    # forwarded create with a partial success (Conflict for 'location', rest created) = 207.
+    # A receives that 207 back from its inclusive forward to C and per Table 6.4.3.1-1 ("error
+    # response received back from any distributed operation") reports 207 Multi-Status itself.
     ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}    broker_url=${b1_url}
-    Check Response Status Code    201    ${response.status_code}
+    Check Response Status Code    207    ${response.status_code}
 
     #Agent checks, with local=true, that the entity is created in A
     ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}    context=${ngsild_test_suite_context}

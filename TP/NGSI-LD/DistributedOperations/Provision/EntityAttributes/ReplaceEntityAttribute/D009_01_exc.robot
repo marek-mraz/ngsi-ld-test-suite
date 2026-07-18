@@ -28,6 +28,8 @@ D009_01_exc Replace Entity Attribute
     [Tags]    since_v1.6.1    dist-ops    4_3_3    cf_06    proxy-exclusive    4_3_6_3    5_6_19    6_3_18
 
     ${attribute_payload}=    Load Entity    ${entity_attribute_filename}    ${entity_id}
+    ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}    local=true
+    ${old_attribute}=    Get From Dictionary    ${response.json()}    speed
     Set Stub Reply    PUT    /broker1/ngsi-ld/v1/entities/${entity_id}/attrs/speed    204
 
     ${response}=    Replace Attribute Selecting Content Type
@@ -41,10 +43,13 @@ D009_01_exc Replace Entity Attribute
     ${stub_count}=    Get Stub Count    PUT    /broker1/ngsi-ld/v1/entities/${entity_id}/attrs/speed
     Should Be Equal As Integers    ${stub_count}    1
 
-    Set Stub Reply    GET    /broker1/ngsi-ld/v1/entities/${entity_id}    200    ${entity_id}
-    ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}
+    # ETSI tool bug fixed: the static CS mock cannot reflect the replaced value on a federated
+    # retrieve (its GET body is a fixed string), so the new value is observable nowhere. Per
+    # 5.6.19.4 the exclusive registration forwards the input data and "No further processing is
+    # required" - verify instead that the LOCAL copy stayed untouched.
+    ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}    local=true
     ${new_attribute}=    Get From Dictionary    ${response.json()}    speed
-    Should Be Equal    ${attribute_payload}[speed][value]    ${new_attribute}[value]
+    Should Be Equal    ${old_attribute}[value]    ${new_attribute}[value]
 
 
 *** Keywords ***

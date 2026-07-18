@@ -22,7 +22,7 @@ ${entity_expectation_file_path}         entity-with-datasetid-046-19.jsonld
 *** Test Cases ***
 046_19 Check That Only The Attribute Instances That Match The datasetId Member Are Included In The Entity In The Notification
     [Documentation]    If a subscription has a datasetId member instances should be filtered based on that datasetId.
-    [Tags]    sub-notification    4_5_5    5_8_6    since_v1.8.1    deferred-broker-fix
+    [Tags]    sub-notification    4_5_5    5_8_6    since_v1.8.1
 
     ${response}=    Update Entity Attributes    ${entity_id}    ${fragment_filename}    ${CONTENT_TYPE_LD_JSON}
 

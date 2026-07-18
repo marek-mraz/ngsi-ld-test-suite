@@ -44,12 +44,20 @@ Create Entity And Registration On The Context Broker And Start Context Source Mo
 
     ${registration_id}=    Generate Random CSR Id
     Set Suite Variable    ${registration_id}
+    # ETSI tool bug fixed: the file's operations=["redirectionOps"] INCLUDES deleteEntity
+    # (Table 4.20-2), so the broker was spec-required (5.6.6.4) to forward - contradicting
+    # this test's premise ("lack of redirection operations"). Override with an operations
+    # list lacking deleteEntity: per 5.6.6.4 the unsupported exclusive part -> Conflict,
+    # while "the input data shall be used to remove the entity locally if it exists"
+    # succeeds -> partial success -> 207 as this test expects.
+    ${operations}=    Create List    queryEntity
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id}
     ...    ${registration_payload_file_path}
     ...    entity_id=${entity_id}
     ...    mode=exclusive
     ...    endpoint=/broker1
+    ...    operations=${operations}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}
     Check Response Status Code    201    ${response.status_code}
 

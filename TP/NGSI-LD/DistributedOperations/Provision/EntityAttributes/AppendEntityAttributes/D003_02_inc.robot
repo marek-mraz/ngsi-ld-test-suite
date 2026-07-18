@@ -23,7 +23,9 @@ D003_02_inc Append Entity Attribute
     [Documentation]    Check that an entity attribute is appended and the inclusive registration forwards the request to the Context Source with the noOverwrite flag
     [Tags]    since_v1.6.1    dist-ops    4_3_3    cf_06    additive-inclusive    4_3_6_2    5_6_3
 
-    ${response}=    Retrieve Entity    ${entity_id}
+    # context= required: a context-less retrieve compacts against the CORE context (5.5.7/6.3.5)
+    # and test-suite attrs come back as full IRIs, never as 'speed'/'isParked'.
+    ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}
     ${old_body}=    Get From Dictionary    ${response.json()}    isParked
 
     Set Stub Reply    POST    /ngsi-ld/v1/entities/${entity_id}/attrs/    207
@@ -41,7 +43,7 @@ D003_02_inc Append Entity Attribute
     ${stub}=    Get Request Url Params    options
     Should Contain    ${stub}    noOverwrite
 
-    ${response}=    Retrieve Entity    ${entity_id}
+    ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}
     ${new_body}=    Get From Dictionary    ${response.json()}    isParked
     Should Have Value In Json    ${response.json()}    $.speed
     Should Be Equal    ${old_body}    ${new_body}

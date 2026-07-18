@@ -36,7 +36,11 @@ D005_01_inc Partial Partial Attribute Update
     ...    ${fragment_filename}
     ...    ${CONTENT_TYPE_LD_JSON}
     Wait For Request
-    Check Response Status Code    204    ${response.status_code}
+    # ETSI tool bug fixed: the fragment carries no datasetId, so per 5.6.4.4 it targets the
+    # DEFAULT instance - which the local entity does not have (its speed instance has
+    # datasetId speed2). Local part -> ResourceNotFound, forwarded part -> 204, and per
+    # 6.7.3.1 (Partial Attribute Update responses) partial success is 207 Multi-Status.
+    Check Response Status Code    207    ${response.status_code}
 
     ${stub_count}=    Get Stub Count    PATCH    /ngsi-ld/v1/entities/${entity_id}/attrs/${attribute_id}
     Should Be True    ${stub_count} > 0

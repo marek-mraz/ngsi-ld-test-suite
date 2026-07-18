@@ -28,6 +28,7 @@ D005_01_exc Partial Partial Attribute Update
 
     ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}    local=true
     ${old_isparked}=    Get Value From Json    ${response.json()}    $.isParked2
+    ${old_speed}=    Get Value From Json    ${response.json()}    $.speed
 
     Set Stub Reply    PATCH    /broker1/ngsi-ld/v1/entities/${entity_id}/attrs/${attribute_id}    204
     ${response}=    Partial Update Entity Attributes
@@ -47,7 +48,11 @@ D005_01_exc Partial Partial Attribute Update
     ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}    local=true
     ${new_isparked}=    Get Value From Json    ${response.json()}    $.isParked2
     Should Be Equal    ${new_isparked}    ${old_isparked}
-    Should Not Contain    ${response.json()}    speed
+    # The entity was created LOCALLY (local=true) WITH speed before any registration existed;
+    # 5.6.4: the matching attr is forwarded and "No further processing is required" locally -
+    # so the spec-correct property is that the LOCAL speed stays UNCHANGED (not absent).
+    ${new_speed}=    Get Value From Json    ${response.json()}    $.speed
+    Should Be Equal    ${new_speed}    ${old_speed}
 
 
 *** Keywords ***

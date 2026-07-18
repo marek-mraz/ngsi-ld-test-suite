@@ -29,35 +29,40 @@ IOP_CNF_03_01 Query Entities Of Type OffStreetParking Via GET
     ...                Registration established: Auxiliary in A to B. Inclusive in A to C. Inclusive in A to D.
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    4_3_6    5_7_2    6_4_3_1
 
-    #Client queries all entities with type OffStreetParking in A and checks for a successful response. 
-    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}    context=${ngsild_test_suite_context}
-    Check Response Status Code    200    ${response.status_code}
-
-    &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
-    ${first_parking_payload}=    Get From Dictionary    ${payload}    ${entity_id}
-    ${second_parking_payload}=    Get From Dictionary    ${payload}    ${second_entity_id}
-
-    #Client queries all entities with type OffStreetParking in B, C and D.
+    #Client queries all entities with type OffStreetParking in B, C and D (direct, no federation).
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${expected_parking1}=    Get From Dictionary    ${payload}    ${second_entity_id}
+    Set Test Variable    ${expected_parking1}
 
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${expected_parking2}=    Get From Dictionary    ${payload}    ${entity_id}
+    Set Test Variable    ${expected_parking2}
 
     ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b4_url}    context=${ngsild_test_suite_context}
     ${payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
     ${expected_parking3}=    Get From Dictionary    ${payload}    ${second_entity_id}
+    Set Test Variable    ${expected_parking3}
 
-    #Client checks that the attributes of the entities in A are the same as the ones in B, C and D.
+    #Client queries A and checks the merged attributes match B, C and D. Registrations propagate
+    #asynchronously to A's in-VM registry cache (and the stored-entityMap invalidation rides the
+    #same channel), so poll until the distributed merge is consistent instead of sleeping.
+    Wait Until Keyword Succeeds    10x    1s    Query A And Verify Merged Attributes
+
+*** Keywords ***
+Query A And Verify Merged Attributes
+    ${response}=    Query Entities    entity_types=OffStreetParking    broker_url=${b1_url}    context=${ngsild_test_suite_context}
+    Check Response Status Code    200    ${response.status_code}
+    &{payload}=    Evaluate    {i['id']: i for i in ${response.json()}}
+    ${first_parking_payload}=    Get From Dictionary    ${payload}    ${entity_id}
+    ${second_parking_payload}=    Get From Dictionary    ${payload}    ${second_entity_id}
     Should Be Equal    ${first_parking_payload}[name]    ${expected_parking2}[name]
     Should Be Equal    ${first_parking_payload}[location]    ${expected_parking2}[location]
     Should Be Equal    ${second_parking_payload}[availableSpotsNumber]    ${expected_parking3}[availableSpotsNumber]
     Should Be Equal    ${second_parking_payload}[totalSpotsNumber]    ${expected_parking3}[totalSpotsNumber]
     Should Not Be Equal    ${second_parking_payload}[availableSpotsNumber]    ${expected_parking1}[availableSpotsNumber]
 
-*** Keywords ***
 Setup Initial Context Source Registrations
     ${entity_id}=    Generate Random Parking Entity Id
     Set Suite Variable    ${entity_id}

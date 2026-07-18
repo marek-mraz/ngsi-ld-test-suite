@@ -32,20 +32,29 @@ IOP_CNF_04_02 Retrieve OffStreetParking:1 Location Attribute
     ...                Registrations established: Auxiliary in A to B and  Inclusive in A to C. Redirect in B to D and Redirect in B to E. Exclusive in C to E.
     [Tags]    since_v1.6.1    iop    4_3_3    cf_06    additive-inclusive    additive-auxiliary    proxy-redirect    proxy-exclusive    4_3_6    5_7_1
 
-    #Client retrieves OffStreetParking:1 in A and checks for a successful response.
+    #Client retrieves OffStreetParking:1 in B, C and E with local=true.
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b2_url}    local=true    context=${ngsild_test_suite_context}
+    ${first_expected_payload}=    Set To Dictionary    ${response.json()}
+    Set Test Variable    ${first_expected_payload}
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b3_url}    local=true    context=${ngsild_test_suite_context}
+    ${second_expected_payload}=    Set To Dictionary    ${response.json()}
+    Set Test Variable    ${second_expected_payload}
+    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b5_url}    local=true    context=${ngsild_test_suite_context}
+    ${third_expected_payload}=    Set To Dictionary    ${response.json()}
+    Set Test Variable    ${third_expected_payload}
+
+    #Client retrieves OffStreetParking:1 in A and checks the merged attributes. The exclusive
+    #C->E registration is the LAST one to propagate to C's in-VM registry cache; until it does,
+    #C legitimately answers without 'location' and A falls back to the auxiliary source (D's
+    #value). Poll until the federated merge is consistent instead of racing a fixed sleep.
+    Wait Until Keyword Succeeds    10x    1s    Retrieve From A And Verify Merged Attributes
+
+*** Keywords ***
+Retrieve From A And Verify Merged Attributes
     ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     ${payload}=    Set To Dictionary    ${response.json()}
     Should Contain    ${payload}    location
-
-    #Client retrieves OffStreetParking:1 in B, C and E with local=true.
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b2_url}    local=true    context=${ngsild_test_suite_context}
-    ${first_expected_payload}=    Set To Dictionary    ${response.json()}
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b3_url}    local=true    context=${ngsild_test_suite_context}
-    ${second_expected_payload}=    Set To Dictionary    ${response.json()}
-    ${response}=    Retrieve Entity    ${entity_id}    broker_url=${b5_url}    local=true    context=${ngsild_test_suite_context}
-    ${third_expected_payload}=    Set To Dictionary    ${response.json()}
-
     #Client checks that the entity returned from A should have the same attributes as the one in B, C and E.
     Should Be Equal    ${payload}[availableSpotsNumber]    ${first_expected_payload}[availableSpotsNumber]
     Should Be Equal    ${payload}[totalSpotsNumber]    ${first_expected_payload}[totalSpotsNumber]

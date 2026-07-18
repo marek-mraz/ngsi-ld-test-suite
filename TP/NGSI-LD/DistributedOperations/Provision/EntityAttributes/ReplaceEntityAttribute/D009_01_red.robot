@@ -47,15 +47,15 @@ D009_01_red Replace Entity Attribute
     ${stub_count}=    Get Stub Count    PUT    /broker2/ngsi-ld/v1/entities/${entity_id}/attrs/speed
     Should Be Equal As Integers    ${stub_count}    1
 
-    Set Stub Reply    GET    /broker1/ngsi-ld/v1/entities/${entity_id}    200    ${entity_id}
-    ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}
-    ${new_attribute}=    Get From Dictionary    ${response.json()}    speed
-    Should Be Equal    ${attribute_payload}[speed][value]    ${new_attribute}[value]
-
-    Set Stub Reply    GET    /broker2/ngsi-ld/v1/entities/${entity_id}    200    ${entity_id}
-    ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}
-    ${new_attribute}=    Get From Dictionary    ${response.json()}    speed
-    Should Be Equal    ${attribute_payload}[speed][value]    ${new_attribute}[value]
+    # ETSI tool bug fixed: with redirect registrations no local copy exists, and the static CS
+    # mocks cannot reflect the replaced value on a federated retrieve (their GET body is a fixed
+    # string) - so the original value read-back could never succeed. The forwarding contract
+    # (5.6.19.4) is verified by the per-CS stub counts above; additionally verify the forwarded
+    # PUT actually carried the replacement value.
+    Wait For Request
+    ${request_payload}=    Get Request Body
+    ${expected_value}=    Convert To String    ${attribute_payload}[speed][value]
+    Should Contain    ${request_payload}    ${expected_value}
 
 
 *** Keywords ***

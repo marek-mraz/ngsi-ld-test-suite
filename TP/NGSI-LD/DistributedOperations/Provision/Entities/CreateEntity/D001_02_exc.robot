@@ -45,12 +45,19 @@ Create Entity And Registration On The Context Broker And Start Context Source Mo
 
     ${registration_id}=    Generate Random CSR Id
     Set Suite Variable    ${registration_id}
+    # ETSI tool bug fixed: the file's operations=["redirectionOps"] INCLUDES createEntity
+    # (Table 4.20-2), so the broker was spec-required (5.6.1.4) to forward - contradicting
+    # this test's whole premise ("without the correct operations"). Override with an
+    # operations list that genuinely lacks createEntity so 5.6.1.4's "operation is not
+    # supported -> error of type Conflict" applies.
+    ${operations}=    Create List    queryEntity
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id}
     ...    ${registration_payload_file_path}
     ...    entity_id=${entity_id}
     ...    mode=exclusive
     ...    endpoint=/broker1
+    ...    operations=${operations}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}
     Check Response Status Code    201    ${response.status_code}
 

@@ -12,7 +12,7 @@ services:
     depends_on:
       - postgres
   postgres:
-    image: postgis/postgis
+    image: postgis/postgis:18-3.6
     hostname: scorpio-database${SUFFIX}
     container_name: scorpio-database${SUFFIX}
     ports:

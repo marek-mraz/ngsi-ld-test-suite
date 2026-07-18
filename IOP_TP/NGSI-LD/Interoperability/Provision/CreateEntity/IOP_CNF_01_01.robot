@@ -31,8 +31,15 @@ IOP_CNF_01_01 Create OffStreetParking:1
     # The application/json retrieve below has no @context member; the loaded fixture carries one only so
     # it can be created. Drop it for the structural comparison.
     Remove From Dictionary    ${expected_payload}    @context
+    # 5.6.1.4 (verbatim): for a matching exclusive registration where Create Entity is NOT
+    # supported (this reg keeps the default read-only federationOps), "this shall result in an
+    # error of type Conflict ... or in a partial success if some parts of it succeeded. The
+    # matching Attributes are then removed from the Fragment and not processed further."
+    # The inclusive forward to B and the local create succeed -> partial success = 207
+    # Multi-Status (Table 6.4.3.1-1), and 'location' (exclusively owned by C) is NOT stored in A.
+    Remove From Dictionary    ${expected_payload}    location
     ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}    broker_url=${b1_url}
-    Check Response Status Code    201    ${response.status_code}
+    Check Response Status Code    207    ${response.status_code}
 
     #Agent checks, with local=true, that the entity is created in A
     ${response}=    Retrieve Entity    ${entity_id}    local=true    broker_url=${b1_url}    context=${ngsild_test_suite_context}

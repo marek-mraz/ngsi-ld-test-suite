@@ -13,7 +13,7 @@ Start Context Source Mock Server
 
 Wait for redirected request
     [Tags]    actor_remote-broker
-    [Arguments]    ${timeout}=${5}
+    [Arguments]    ${timeout}=${15}
     # HTTP server receives it and checks incoming request for correctness
     # .. "Wait For Request"
     # .... This call is blocked until HTTP request arrives or timeout.

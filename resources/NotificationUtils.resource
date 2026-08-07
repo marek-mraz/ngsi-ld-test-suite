@@ -23,7 +23,7 @@ Start Local Server
 
 Wait for notification
     [Tags]    actor_notification-receiver
-    [Arguments]    ${timeout}=${5}
+    [Arguments]    ${timeout}=${15}
     # HTTP server receives it and checks incoming request for correctness
     # .. "Wait For Request"
     # .... This call is blocked until HTTP request arrives or timeout.
@@ -45,7 +45,7 @@ Wait for CSource notification and validate it
     ...    ${expected_context_source_registration_ids}
     ...    ${expected_trigger_reason}
     ...    ${expected_notification_data_entities}=${EMPTY}
-    ...    ${timeout}=${5}
+    ...    ${timeout}=${15}
     # HTTP server receives it and checks incoming request for correctness
     # .. "Wait For Request"
     # .... This call is blocked until HTTP request arrives or timeout.

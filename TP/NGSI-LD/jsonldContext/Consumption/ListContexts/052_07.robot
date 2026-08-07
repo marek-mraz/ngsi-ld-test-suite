@@ -14,7 +14,7 @@ Test Template       List @contexts with several previous created @context
 
 *** Variables ***
 ${entity_filename}=     building-simple-attributes.json
-${contextUri}=          https://forge.etsi.org/rep/cim/ngsi-ld-test-suite/-/raw/develop/resources/jsonld-contexts/ngsi-ld-test-suite.jsonld
+${contextUri}=          https://raw.githubusercontent.com/marek-mraz/ngsi-ld-test-suite/main/resources/jsonld-contexts/ngsi-ld-test-suite.jsonld
 ${reason_200}=          OK
 ${reason_204}=          No Content
 ${content_type}=        application/json

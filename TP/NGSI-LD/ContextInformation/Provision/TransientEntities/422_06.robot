@@ -72,13 +72,16 @@ ${EXPIRY_SECONDS}       ${5}
     # All three served before the (original) expiry
     ${response}=    Retrieve Entity    id=${entity_id}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    Should Contain    ${response.text}    temperature
-    Should Contain    ${response.text}    humidity
-    Should Contain    ${response.text}    pressure
+    ${body}=    Evaluate    $response.json()
+    Should Be Equal As Numbers    ${body["temperature"]["value"]}    2
+    Should Be Equal As Numbers    ${body["humidity"]["value"]}    51
+    Should Be Equal As Numbers    ${body["pressure"]["value"]}    1001
     Sleep    ${EXPIRY_SECONDS + 2}s
-    # After it: only the whole-replaced attribute survives
+    # After it: only the whole-replaced attribute survives, with its value
     ${response}=    Retrieve Entity    id=${entity_id}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    Should Contain    ${response.text}    temperature
-    Should Not Contain    ${response.text}    humidity
-    Should Not Contain    ${response.text}    pressure
+    ${body}=    Evaluate    $response.json()
+    ${keys}=    Evaluate    sorted($body.keys())
+    Should Be Equal As Numbers    ${body["temperature"]["value"]}    2
+    Should Not Contain    ${keys}    humidity
+    Should Not Contain    ${keys}    pressure

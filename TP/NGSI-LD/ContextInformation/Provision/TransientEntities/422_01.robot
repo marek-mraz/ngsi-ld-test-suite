@@ -83,7 +83,8 @@ ${EXPIRY_SECONDS}       ${6}
     Check Response Status Code    204    ${response.status_code}
     ${response}=    Retrieve Entity    id=${eid_append}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    Should Contain    ${response.text}    temperature
+    ${temp}=    Evaluate    $response.json().get("temperature", {})
+    Should Be Equal As Numbers    ${temp["value"]}    21    appended transient attribute served with its value
 
 422_01_06 Expired Entities And Attributes Are Gone
     [Documentation]    Past expiresAt every transient entity 404s and the transient
@@ -96,7 +97,8 @@ ${EXPIRY_SECONDS}       ${6}
     END
     ${response}=    Retrieve Entity    id=${eid_append}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    Should Not Contain    ${response.text}    temperature
+    ${keys}=    Evaluate    sorted($response.json().keys())
+    Should Not Contain    ${keys}    temperature    the expired attribute member is absent from the parsed entity
 
 
 *** Keywords ***

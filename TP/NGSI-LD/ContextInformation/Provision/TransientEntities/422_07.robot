@@ -40,7 +40,8 @@ ${TEMPORAL_QS}          timerel=before&timeAt=2030-01-01T00:00:00Z&timeproperty=
     Patch Attr    ${eid_hist}    temperature    2
     Patch Attr    ${eid_hist}    temperature    3
     ${values}=    Temporal Values Of    ${eid_hist}    temperature
-    Length Should Be    ${values}    3    create + 2 updates = 3 instances
+    ${nums}=    Evaluate    sorted(v[0] for v in $values)
+    Should Be Equal    ${nums}    ${{[1, 2, 3]}}    create + 2 updates = exactly these 3 instances
     # expiresAt-only merge: no attribute changed => no new instance
     &{headers}=    Create Dictionary    Content-Type=application/ld+json
     ${fragment}=    Evaluate
@@ -52,7 +53,8 @@ ${TEMPORAL_QS}          timerel=before&timeAt=2030-01-01T00:00:00Z&timeproperty=
     ...    expected_status=any
     Check Response Status Code    204    ${response.status_code}
     ${values}=    Temporal Values Of    ${eid_hist}    temperature
-    Length Should Be    ${values}    3    expiresAt is meta, not an attribute — history unchanged
+    ${nums}=    Evaluate    sorted(v[0] for v in $values)
+    Should Be Equal    ${nums}    ${{[1, 2, 3]}}    expiresAt is meta, not an attribute — history unchanged
 
 422_07_02 Transient Attribute History Evaporates Durable History Stays
     [Tags]    transient    4_22    troe
@@ -72,12 +74,16 @@ ${TEMPORAL_QS}          timerel=before&timeAt=2030-01-01T00:00:00Z&timeproperty=
     # is transient too
     Patch Attr    ${eid_attr}    flash    11
     ${values}=    Temporal Values Of    ${eid_attr}    flash
-    Length Should Be    ${values}    2    both flash instances recorded pre-expiry
+    ${nums}=    Evaluate    sorted(v[0] for v in $values)
+    Should Be Equal    ${nums}    ${{[10, 11]}}    both flash instances recorded pre-expiry
     Sleep    ${EXPIRY_SECONDS + 2}s
     ${response}=    Temporal Retrieve    ${eid_attr}
     Check Response Status Code    200    ${response.status_code}
-    Should Not Contain    ${response.text}    flash
-    Should Contain    ${response.text}    steady
+    ${body}=    Evaluate    $response.json()
+    ${keys}=    Evaluate    sorted($body.keys())
+    Should Not Contain    ${keys}    flash    the transient attribute's history evaporated
+    ${steady}=    Evaluate    [v[0] for v in $body["steady"]["values"]]
+    Should Be Equal    ${steady}    ${{[100]}}    durable history intact, exact values
 
 422_07_03 Entity Expiry Kills Current State But History Survives
     [Tags]    transient    4_22    troe
@@ -100,15 +106,18 @@ ${TEMPORAL_QS}          timerel=before&timeAt=2030-01-01T00:00:00Z&timeproperty=
     ${response}=    Temporal Retrieve    ${eid_ent}
     Check Response Status Code    200    ${response.status_code}
     ${values}=    Temporal Values Of    ${eid_ent}    temperature
-    Length Should Be    ${values}    2    the durable attribute's history outlives the entity
+    ${nums}=    Evaluate    sorted(v[0] for v in $values)
+    Should Be Equal    ${nums}    ${{[7, 8]}}    the attribute's full history outlives the entity
 
 
 *** Keywords ***
 Patch Attr
     [Arguments]    ${id}    ${attr}    ${value}
     &{headers}=    Create Dictionary    Content-Type=application/ld+json
+    # int(): robot arguments are strings — sending $value raw would store a
+    # JSON string and corrupt the exact-value history assertions
     ${fragment}=    Evaluate
-    ...    {"type": "Property", "value": $value, "@context": $ngsild_test_suite_context}
+    ...    {"type": "Property", "value": int($value), "@context": $ngsild_test_suite_context}
     ${response}=    PATCH
     ...    url=${url}/${ENTITIES_ENDPOINT_PATH}${id}/attrs/${attr}
     ...    json=${fragment}

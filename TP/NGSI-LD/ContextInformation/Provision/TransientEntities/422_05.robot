@@ -32,7 +32,7 @@ Suite Teardown      Delete Entity    ${entity_id}
     Patch Temperature To    3
     ${response}=    Retrieve Entity    id=${entity_id}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    Should Contain    ${response.text}    3
+    Should Be Equal As Numbers    ${response.json()["temperature"]["value"]}    3    last partial update won
     # Now set a FUTURE expiration — the update history does not matter (5.5.12)
     ${now}=    Get Current Date    time_zone=UTC
     ${future}=    Add Time To Date    ${now}    30s    result_format=%Y-%m-%dT%H:%M:%SZ
@@ -49,8 +49,9 @@ Suite Teardown      Delete Entity    ${entity_id}
 Patch Temperature To
     [Arguments]    ${value}
     &{headers}=    Create Dictionary    Content-Type=application/ld+json
+    # int(): robot arguments are strings — raw $value would store a JSON string
     ${fragment}=    Evaluate
-    ...    {"type": "Property", "value": $value, "@context": $ngsild_test_suite_context}
+    ...    {"type": "Property", "value": int($value), "@context": $ngsild_test_suite_context}
     ${response}=    PATCH
     ...    url=${url}/${ENTITIES_ENDPOINT_PATH}${entity_id}/attrs/temperature
     ...    json=${fragment}

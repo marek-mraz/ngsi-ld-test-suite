@@ -27,28 +27,32 @@ ${EXPIRY_SECONDS}       ${6}
     [Tags]    transient    4_22
     ${response}=    Retrieve Entity    id=${entity_id}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    Should Contain    ${response.text}    temperature
-    Should Contain    ${response.text}    humidity
-    Should Contain    ${response.text}    ownedBy
-    Should Contain    ${response.text}    locatedIn
-    Should Contain    ${response.text}    ephemeral-speed
-    Should Contain    ${response.text}    durable-speed
+    ${body}=    Evaluate    $response.json()
+    ${keys}=    Evaluate    sorted($body.keys())
+    FOR    ${attr}    IN    temperature    humidity    ownedBy    locatedIn    speed
+        Should Contain    ${keys}    ${attr}
+    END
+    ${speeds}=    Evaluate    sorted(i["value"] for i in $body["speed"])
+    Should Be Equal    ${speeds}    ${{["durable-speed", "ephemeral-speed"]}}    both datasetId instances served
 
 422_03_02 Expired Attributes Vanish Durable Siblings And Entity Survive
     [Tags]    transient    4_22
     Sleep    ${EXPIRY_SECONDS + 2}s
     ${response}=    Retrieve Entity    id=${entity_id}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
-    # transient Property gone
-    Should Not Contain    ${response.text}    temperature
-    # transient Relationship gone
-    Should Not Contain    ${response.text}    ownedBy
-    # transient datasetId instance gone, durable sibling instance kept
-    Should Not Contain    ${response.text}    ephemeral-speed
-    Should Contain    ${response.text}    durable-speed
-    # durable attributes untouched
-    Should Contain    ${response.text}    humidity
-    Should Contain    ${response.text}    locatedIn
+    ${body}=    Evaluate    $response.json()
+    ${keys}=    Evaluate    sorted($body.keys())
+    # transient Property and transient Relationship gone as members
+    Should Not Contain    ${keys}    temperature
+    Should Not Contain    ${keys}    ownedBy
+    # transient datasetId instance gone, durable sibling kept — exactly one
+    # instance remains and it is the durable one
+    ${speed}=    Evaluate    $body["speed"] if isinstance($body["speed"], list) else [$body["speed"]]
+    Length Should Be    ${speed}    1
+    Should Be Equal    ${speed[0]["value"]}    durable-speed
+    # durable attributes untouched, exact values
+    Should Be Equal As Numbers    ${body["humidity"]["value"]}    60
+    Should Be Equal    ${body["locatedIn"]["object"]}    urn:ngsi-ld:City:bb
 
 
 *** Keywords ***

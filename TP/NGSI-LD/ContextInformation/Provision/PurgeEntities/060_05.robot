@@ -15,8 +15,13 @@ Test Teardown       Delete Entity    ${entity_id}
     [Documentation]    Check that purge entities with keep parameter deletes all attributes except those specified while keeping the entities
     [Tags]    e-purge    5_6_21    6_4_3_3    since_v1.9.1
 
+    # `type` added (was id+keep only): 5.6.21.4 and Table 6.4.3.3-1 both require
+    # at least one of type/attrs/q/georel (or local), and keep/drop are
+    # projection, not filters — see error.md 2026-08-09. The subject of this TP
+    # (keep semantics) is unchanged.
     ${response}=    Purge Entities
     ...    id=${entity_id}
+    ...    type=Building
     ...    keep=name
     ...    context=${ngsild_test_suite_context}
 

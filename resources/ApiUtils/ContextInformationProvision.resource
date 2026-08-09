@@ -395,6 +395,8 @@ Purge Entities
     ...    ${drop}=${EMPTY}
     ...    ${context}=${EMPTY}
     ...    ${local}=${EMPTY}
+    ...    ${idPattern}=${EMPTY}
+    ...    ${attrs}=${EMPTY}
     &{headers}=    Create Dictionary
     IF    '${context}'!=''
         ${context_link}=    Build Context Link    ${context}
@@ -409,6 +411,8 @@ Purge Entities
     IF    '${keep}'!=''    Set To Dictionary    ${params}    keep=${keep}
     IF    '${drop}'!=''    Set To Dictionary    ${params}    drop=${drop}
     IF    '${local}'!=''    Set To Dictionary    ${params}    local=${local}
+    IF    '${idPattern}'!=''    Set To Dictionary    ${params}    idPattern=${idPattern}
+    IF    '${attrs}'!=''    Set To Dictionary    ${params}    attrs=${attrs}
 
     ${response}=    DELETE
     ...    url=${url}/${ENTITIES_ENDPOINT_PATH}

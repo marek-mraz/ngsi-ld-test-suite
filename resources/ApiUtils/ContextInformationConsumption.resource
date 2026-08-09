@@ -51,6 +51,9 @@ Query Entities
     ...    ${omit}=${EMPTY}
     ...    ${orderBy}=${EMPTY}
     ...    ${broker_url}=${EMPTY}
+    # Table 6.4.3.2-1 `geometryProperty` — selects the top-level geometry for
+    # GeoJSON output. Distinct from `geoproperty`, which targets the geoquery.
+    ...    ${geometryProperty}=${EMPTY}
     ${final_url}=    Set Variable If    '${broker_url}'!=''    ${broker_url}    ${url}
     ${attrs_length}=    Get Length    ${attrs}
     ${accept_length}=    Get Length    ${accept}
@@ -110,6 +113,9 @@ Query Entities
     IF    ${omit_length}>0    Set To Dictionary    ${params}    omit=${omit}
     IF    ${orderBy_length}>0
         Set To Dictionary    ${params}    orderBy=${orderBy}
+    END
+    IF    '${geometryProperty}'!=''
+        Set To Dictionary    ${params}    geometryProperty=${geometryProperty}
     END
 
     ${response}=    GET

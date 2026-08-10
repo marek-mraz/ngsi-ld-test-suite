@@ -49,7 +49,17 @@ Create Entity And Registration On The Context Broker And Start Context Source Mo
     ...    ${registration_id}
     ...    ${registration_payload_file_path}
     ...    entity_id=${entity_id}
-    ...    mode=inclusive
+    # 6.3.17 p.278 scopes 508 Loop Detected to "an exclusive or redirect
+    # registration, where all of the data is held outside of the Context
+    # Broker and held in a single registered source ... registered to redirect
+    # back on to the Context Broker". This test asserted 508 while registering
+    # mode=inclusive, for which the same clause prescribes 207 on source
+    # errors and Table 6.3.18-2 drops the looping registration from matching
+    # (the operation then runs locally and answers 204). Registering the mode
+    # the assertion belongs to keeps the subject — Via replay ⇒ loop — intact.
+    # Note the siblings D018_02/D018_03 are tagged additive-inclusive; this
+    # test is not. See error.md 2026-08-10.
+    ...    mode=redirect
     ${response}=    Create Context Source Registration With Return    ${registration_payload}
     Check Response Status Code    201    ${response.status_code}
 

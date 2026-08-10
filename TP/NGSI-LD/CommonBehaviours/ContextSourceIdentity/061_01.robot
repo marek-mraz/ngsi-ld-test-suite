@@ -71,9 +71,42 @@ ${SOURCE_IDENTITY_ENDPOINT_PATH}        info/sourceIdentity
     ...    contextSourceTimeAt must be a 4.6.3 UTC DateTime, got "${time_at}"
 
 
+061_01_05 Context Source Alias Identifies A Specific Tenant
+    [Documentation]    Table 5.2.40-1: "In the multi-tenancy use case (see clause 4.14),
+    ...    this id shall be identifying a specific Tenant within a registered Context
+    ...    Source." One alias for every tenant of a broker makes its tenants
+    ...    indistinguishable in a Via chain, so cross-tenant federation within one
+    ...    Context Source is misread as a loop (6.3.17/6.3.18).
+    [Tags]    common-behaviours    5_15_1    5_2_40    4_14    6_3_18    since_v1.9.1
+
+    ${default}=    Retrieve Source Identity
+    ${tenant_a}=    Retrieve Source Identity    tenant=urnalias-a
+    ${tenant_b}=    Retrieve Source Identity    tenant=urnalias-b
+
+    Should Not Be Equal
+    ...    ${tenant_a.json()["contextSourceAlias"]}
+    ...    ${default.json()["contextSourceAlias"]}
+    ...    a tenant's alias shall identify that tenant, not just the Context Source
+    Should Not Be Equal
+    ...    ${tenant_a.json()["contextSourceAlias"]}
+    ...    ${tenant_b.json()["contextSourceAlias"]}
+    ...    two tenants of one Context Source shall not share an alias
+
+    # …and it is stable: the same tenant retrieves the same alias, which is what
+    # a peer stores as contextSourceAlias in its registration (Table 5.2.9-1).
+    ${again}=    Retrieve Source Identity    tenant=urnalias-a
+    Should Be Equal
+    ...    ${again.json()["contextSourceAlias"]}
+    ...    ${tenant_a.json()["contextSourceAlias"]}
+
+
 *** Keywords ***
 Retrieve Source Identity
+    [Arguments]    ${tenant}=${EMPTY}
     &{headers}=    Create Dictionary    Accept=application/json
+    IF    '${tenant}' != ''
+        Set To Dictionary    ${headers}    NGSILD-Tenant=${tenant}
+    END
     ${response}=    GET
     ...    url=${url}/${SOURCE_IDENTITY_ENDPOINT_PATH}
     ...    headers=${headers}

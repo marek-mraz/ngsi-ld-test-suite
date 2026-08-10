@@ -2667,3 +2667,32 @@ doesn't match the URL id.
 `$.id` with the actual `${entity_id}` before PATCHing. Or omit the
 `id` from the fragment entirely (PATCH attrs doesn't need it).
 
+
+## 75. `D018_01` — asserts **508** while registering `mode=inclusive`
+
+**Status:** fixed in this fork (setup now registers `mode=redirect`).
+
+**Hit:** `D018_01 Loop Detection With Via Header` — the DELETE replaying the
+broker's own `Via` pseudonym returns **204**, the test asserts **508**. Only
+failing TP of the 4×8 matrix, identical in every store mode.
+
+**Where:** the Test Setup calls `Prepare Context Source Registration From File
+… mode=inclusive`. (The fixture name — `…-vehicle-redirection-ops.jsonld` —
+refers to `operations: ["redirectionOps"]`, an operation group, and does not
+set a mode.)
+
+**Spec:** 6.3.17 p.278 returns 508 only "in the case of an **exclusive** or
+**redirect** registration, where all of the data is held outside of the Context
+Broker and held in a single registered source … registered to redirect back on
+to the Context Broker". For **inclusive** the clause prescribes 207 on source
+errors, and Table 6.3.18-2 p.279 makes the Via listing "used when determining
+matching registrations" — the looping registration drops out and the operation
+completes locally, i.e. 204.
+
+Supporting signal: `D018_02` and `D018_03` are tagged `additive-inclusive`;
+`D018_01` is not, yet it is the one that pins the mode to inclusive.
+
+**Fix wanted upstream:** `mode=redirect` (or `exclusive`) in `D018_01`'s setup,
+so the scenario matches the clause the assertion cites. Alternatively, if ETSI
+intends *any* replayed self-alias to be 508 regardless of mode, 6.3.17 needs
+amending — the current text cannot support the assertion.

@@ -26,11 +26,11 @@ Test Teardown       Delete Entity    ${entity_id}
     [Documentation]    4.5.2.3: bare value ⇒ Property; geometry value ⇒ GeoProperty
     ...    (whole-object and value-member forms); type-less object with value and a
     ...    sub-attribute ⇒ Property with the sub-attribute preserved.
-    [Tags]    e-create    e-retrieve    4_5_2_3    since_v1.9.1
+    [Tags]    e-create    e-retrieve    4_5_2_3    4_5_3_3    since_v1.9.1
     ${entity_id}=    Generate Random Vehicle Entity Id
     Set Test Variable    ${entity_id}
     ${payload}=    Evaluate
-    ...    {"id": $entity_id, "type": "Vehicle", "@context": [$ngsild_test_suite_context], "speed": 55, "location": {"type": "Point", "coordinates": [8.0, 49.0]}, "area": {"value": {"type": "Point", "coordinates": [1.0, 2.0]}}, "brandName": {"value": "Volvo", "observedAt": "2026-01-01T00:00:00Z"}}
+    ...    {"id": $entity_id, "type": "Vehicle", "@context": [$ngsild_test_suite_context], "speed": 55, "location": {"type": "Point", "coordinates": [8.0, 49.0]}, "area": {"value": {"type": "Point", "coordinates": [1.0, 2.0]}}, "brandName": {"value": "Volvo", "observedAt": "2026-01-01T00:00:00Z"}, "isParked": {"object": "urn:ngsi-ld:OffStreetParking:1"}}
     ${response}=    Create Entity From JSON-LD Content    ${payload}
     Check Response Status Code    201    ${response.status_code}
     ${response}=    Retrieve Entity    ${entity_id}    context=${ngsild_test_suite_context}
@@ -48,3 +48,5 @@ Test Teardown       Delete Entity    ${entity_id}
     Should Be Equal    ${brand_type}    Property
     ${brand_obs}=    Evaluate    $body['brandName']['observedAt']
     Should Be Equal    ${brand_obs}    2026-01-01T00:00:00Z
+    ${rel_type}=    Evaluate    $body['isParked']['type']
+    Should Be Equal    ${rel_type}    Relationship

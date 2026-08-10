@@ -57,9 +57,17 @@ Setup Registration And Start Context Source Mock Server
     ${registration_payload}=    Prepare Context Source Registration From File
     ...    ${registration_id}
     ...    ${registration_payload_file_path}
-    ...    entity_id_pattern=${entity_pattern}
     ...    mode=exclusive
     ...    endpoint=/broker1
+    # ETSI tool bug fixed: 4.3.6.3 - "an id pattern or Entity type defining a group of
+    # entities is not supported for exclusive registrations"; an exclusive registration
+    # shall name entity ids. Register the two concrete ids instead of urn:ngsi-ld:Vehicle:*.
+    ${exclusive_entities}=    Evaluate
+    ...    [{"id": $first_entity_id, "type": "Vehicle"}, {"id": $second_entity_id, "type": "Vehicle"}]
+    ${registration_payload}=    Update Value To JSON
+    ...    ${registration_payload}
+    ...    $.information[0].entities
+    ...    ${exclusive_entities}
     ${response1}=    Create Context Source Registration With Return    ${registration_payload}
     Check Response Status Code    201    ${response1.status_code}
     Start Context Source Mock Server

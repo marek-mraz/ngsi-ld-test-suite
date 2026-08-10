@@ -2696,3 +2696,28 @@ Supporting signal: `D018_02` and `D018_03` are tagged `additive-inclusive`;
 so the scenario matches the clause the assertion cites. Alternatively, if ETSI
 intends *any* replayed self-alias to be 508 regardless of mode, 6.3.17 needs
 amending — the current text cannot support the assertion.
+
+---
+
+## 2026-08-10 — `_exc` setups violate 4.3.6.3's exclusive-registration rules
+
+4.3.6.3 p.41 mandates that an exclusive registration define BOTH an entity id
+("an id pattern or Entity type defining a group of entities is not supported
+for exclusive registrations") AND Attributes. Nine `_exc` TPs created
+registrations breaking this and asserted 201:
+
+- `D001_02_exc`, `D002_02_exc`: entity id but no Attributes
+  (`vehicle-redirection-ops` fixture).
+- `D012_01/D013_01/D013_02/D014_01/D014_02/D015_01/D016_01_exc`:
+  `idPattern=urn:ngsi-ld:Vehicle:*` (`vehicle-speed-with-batch-ops` fixture).
+
+A broker enforcing 4.3.6.3/5.9.2 (400 on the malformed exclusive, 409 on a
+proxied overlap with an existing exclusive) fails these setups through no
+fault of its own.
+
+**Fix applied in this fork:** D001_02_exc/D002_02_exc use the
+`vehicle-speed-with-redirection-ops` fixture (id + propertyNames); the seven
+batch `_exc` setups register the two concrete entity ids instead of the
+pattern. Assertions untouched — each test still proves its stated subject.
+**Fix wanted upstream:** same, or ETSI relaxes 4.3.6.3 if pattern-scoped
+exclusives are intended to be legal (the current text cannot support them).

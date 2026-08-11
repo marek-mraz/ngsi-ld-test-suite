@@ -23,7 +23,7 @@ Resource            ${EXECDIR}/resources/JsonUtils.resource
     [Documentation]    4.6.6: upsert batch with the same id twice — the second
     ...    (newer) instance's value must win and the first instance's
     ...    first-only attribute must NOT survive (replace semantics).
-    [Tags]    be-upsert    4_6_6    since_v1.9.1
+    [Tags]    be-upsert    4_6_6    5_5_11_0    5_5_11_2    since_v1.9.1
     ${entity_id}=    Generate Random Vehicle Entity Id
     ${first}=    Evaluate
     ...    {"id": $entity_id, "type": "Vehicle", "@context": [$ngsild_test_suite_context], "speed": {"type": "Property", "value": 1}, "old": {"type": "Property", "value": True}}

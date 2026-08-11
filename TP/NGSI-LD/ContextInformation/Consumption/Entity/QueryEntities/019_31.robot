@@ -30,7 +30,7 @@ ${entities_path}=       /ngsi-ld/v1/entities
 019_31_01 First Page Flags Remaining Elements With Next Only
     [Documentation]    4.12: "provide a mechanism to flag NGSI-LD Clients when there are
     ...    remaining NGSI-LD Elements" — and no prev on the first page
-    [Tags]    e-query    4_12    since_v1.9.1
+    [Tags]    e-query    4_12    5_5_9_1    5_5_9_2    since_v1.9.1
     1    0    1
     ...    ${EMPTY}
     ...    <${entities_path}?count=true&idPattern=${id_pattern}&limit=1&offset=1&type=Building>; rel="next";type="application/json"
@@ -38,14 +38,14 @@ ${entities_path}=       /ngsi-ld/v1/entities
 019_31_02 Middle Page Carries Both Prev And Next
     [Documentation]    4.12: "allow NGSI-LD Clients iterating forwards and backwards
     ...    through a result set"
-    [Tags]    e-query    4_12    since_v1.9.1
+    [Tags]    e-query    4_12    5_5_9_1    5_5_9_2    since_v1.9.1
     1    1    1
     ...    <${entities_path}?count=true&idPattern=${id_pattern}&limit=1&offset=0&type=Building>; rel="prev";type="application/json"
     ...    <${entities_path}?count=true&idPattern=${id_pattern}&limit=1&offset=2&type=Building>; rel="next";type="application/json"
 
 019_31_03 Last Page Carries Prev Only
     [Documentation]    4.12: no remaining elements — the next link must be absent
-    [Tags]    e-query    4_12    since_v1.9.1
+    [Tags]    e-query    4_12    5_5_9_1    5_5_9_2    since_v1.9.1
     1    2    1
     ...    <${entities_path}?count=true&idPattern=${id_pattern}&limit=1&offset=1&type=Building>; rel="prev";type="application/json"
     ...    ${EMPTY}
@@ -54,7 +54,7 @@ ${entities_path}=       /ngsi-ld/v1/entities
     [Documentation]    4.12: "allow NGSI-LD Clients specifying a limit (page size) ... to
     ...    the number of NGSI-LD Elements (at a maximum) retrieved ... per pagination
     ...    iteration" — 2 of 3 on the first page, the remainder flagged via next
-    [Tags]    e-query    4_12    since_v1.9.1
+    [Tags]    e-query    4_12    5_5_9_1    5_5_9_2    since_v1.9.1
     2    0    2
     ...    ${EMPTY}
     ...    <${entities_path}?count=true&idPattern=${id_pattern}&limit=2&offset=2&type=Building>; rel="next";type="application/json"

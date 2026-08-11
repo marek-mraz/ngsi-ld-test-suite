@@ -2721,3 +2721,22 @@ batch `_exc` setups register the two concrete entity ids instead of the
 pattern. Assertions untouched — each test still proves its stated subject.
 **Fix wanted upstream:** same, or ETSI relaxes 4.3.6.3 if pattern-scoped
 exclusives are intended to be legal (the current text cannot support them).
+
+## 2026-08-11 — 5.2.3 served @context: literal wording vs ecosystem practice
+
+Clause 5.2.3 (V1.9.1, p.105): "an array (flattened to a single string if
+necessary), containing a user @context where present, and the core @context
+(as described in clause 4.4) shall be included as a special member of the
+corresponding JSON-LD Object."
+
+Read literally, every application/ld+json response body should carry
+`[user-context…, core-context]`. The official suite pins the OPPOSITE in 68
+expectation files (strict `StringOrSingleListContextOperator` comparison,
+e.g. `data/entities/expectations/building-language-property-fr-filter.jsonld`
+= suite context alone), and the suite is validated against Scorpio/Stellio —
+i.e. the whole ecosystem treats the core context as implicit (4.4) and
+echoes only the user context. Antares follows the ecosystem reading
+(negotiate.rs `served_context`); flipping to the literal reading would fail
+all 68 expectations. Not fork-fixed — raise as a wording clarification
+upstream instead. Strictly-JSON-LD consumers that need core terms resolvable
+must apply the core context themselves, exactly as 4.4 describes.

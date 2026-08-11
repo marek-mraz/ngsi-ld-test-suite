@@ -54,6 +54,9 @@ Query Entities
     # Table 6.4.3.2-1 `geometryProperty` — selects the top-level geometry for
     # GeoJSON output. Distinct from `geoproperty`, which targets the geoquery.
     ...    ${geometryProperty}=${EMPTY}
+    # 4.9 `expandValues` — attribute list whose query-term values are expanded
+    # against the @context before evaluation (EXAMPLE 12).
+    ...    ${expandValues}=${EMPTY}
     ${final_url}=    Set Variable If    '${broker_url}'!=''    ${broker_url}    ${url}
     ${attrs_length}=    Get Length    ${attrs}
     ${accept_length}=    Get Length    ${accept}
@@ -116,6 +119,9 @@ Query Entities
     END
     IF    '${geometryProperty}'!=''
         Set To Dictionary    ${params}    geometryProperty=${geometryProperty}
+    END
+    IF    '${expandValues}'!=''
+        Set To Dictionary    ${params}    expandValues=${expandValues}
     END
 
     ${response}=    GET

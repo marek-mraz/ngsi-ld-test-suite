@@ -60,6 +60,25 @@ ${retrieve_ops_file_path}       csourceRegistrations/context-source-registration
     ...    AND    Delete Registration And Stop Mock
 
 
+5614_01_03 Redirect Registration Without Update Support Is Conflict
+    [Documentation]    5.6.2.4: an exclusive/redirect registration matching
+    ...    the update but not supporting it → 409 Conflict; the source is
+    ...    never contacted.
+    [Tags]    dist-ops    5_6_2    4_20    since_v1.9.1
+    Setup Registration With Ops    redirect
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${fragment}=    Evaluate    {"speed": {"type": "Property", "value": 9}}
+    ${response}=    PATCH
+    ...    url=${url}/${ENTITIES_ENDPOINT_PATH}${entity_id}/attrs/
+    ...    json=${fragment}
+    ...    headers=${headers}
+    ...    expected_status=any
+    Check Response Status Code    409    ${response.status_code}
+    Should Contain    ${response.text}    errors/Conflict
+    ${stub_count}=    Get Stub Count    PATCH    /source/ngsi-ld/v1/entities/${entity_id}/attrs/
+    Should Be Equal As Integers    ${stub_count}    0
+
+
 *** Keywords ***
 Setup Registration With Ops
     [Arguments]    ${mode}

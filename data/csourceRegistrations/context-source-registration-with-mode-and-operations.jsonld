@@ -27,7 +27,7 @@
        "relationshipNames": ["isNextToBuilding"]
        }
    ],
-   "mode": "exclusive",
+   "mode": "redirect",
    "operations": ["queryEntity","queryTemporal","updateOps"],
    "endpoint": "http://my.csource.org:1026",
    "@context": [

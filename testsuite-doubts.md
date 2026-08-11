@@ -2740,3 +2740,27 @@ echoes only the user context. Antares follows the ecosystem reading
 all 68 expectations. Not fork-fixed — raise as a wording clarification
 upstream instead. Strictly-JSON-LD consumers that need core terms resolvable
 must apply the core context themselves, exactly as 4.4 describes.
+
+## 2026-08-11 — 5.2.8 EntityInfo type cardinality vs the IOP fixture
+
+5.2.8 (V1.9.1, p.111): type has Cardinality 1 — "it is not possible to
+register what Entities can be provided by a Context Source just by their id
+or idPattern (i.e. without specifying their type)". The official
+interoperability suite registers exactly that:
+`data/csourceRegistrations/interoperability/context-source-registration-exclusive-1.jsonld`
+carries `{"id": "urn:ngsi-ld:OffStreetParking:2"}` with no type, and the IOP
+job depends on it being accepted. Antares stays tolerant (typeless
+EntityInfo restricts by id/idPattern only) so the official IOP suite runs;
+strictly enforcing the cardinality would 400 that fixture. Raise upstream —
+either the fixture or the table note should change.
+
+## 2026-08-11 — 033_01_02 fixture: exclusive mode with idPattern EntityInfos
+
+`data/csourceRegistrations/context-source-registration-with-mode-and-operations.jsonld`
+registered `mode: exclusive` with two idPattern-only EntityInfos. 4.3.6.3:
+an exclusive registration "relates to a specific Entity" — Antares (commit
+0990944) rejects exclusive registrations whose EntityInfos use idPattern or
+type-only groups, same argument as the nine `_exc` TPs fork-fixed on
+2026-08-10. Fork fix: the fixture's mode becomes `redirect` (equally
+non-default, legal with idPattern), keeping the TP's purpose — a non-default
+mode with an operations list. Raise upstream together with the `_exc` batch.

@@ -57,6 +57,8 @@ Query Entities
     # 4.9 `expandValues` — attribute list whose query-term values are expanded
     # against the @context before evaluation (EXAMPLE 12).
     ...    ${expandValues}=${EMPTY}
+    # 4.12 pagination offset — page start within the result set.
+    ...    ${offset}=${EMPTY}
     ${final_url}=    Set Variable If    '${broker_url}'!=''    ${broker_url}    ${url}
     ${attrs_length}=    Get Length    ${attrs}
     ${accept_length}=    Get Length    ${accept}
@@ -123,6 +125,7 @@ Query Entities
     IF    '${expandValues}'!=''
         Set To Dictionary    ${params}    expandValues=${expandValues}
     END
+    IF    '${offset}'!=''    Set To Dictionary    ${params}    offset=${offset}
 
     ${response}=    GET
     ...    url=${final_url}/${ENTITIES_ENDPOINT_PATH}

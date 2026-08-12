@@ -85,19 +85,19 @@ ${entity_type}=                 Building
     ...    targeted by the managedBy Relationship — the features entity matches through
     ...    the target entity's name
     [Tags]    e-query    4_9    since_v1.9.1
-    managedBy{name}=="Pisa Tower"    200    1
+    managedBy{name}=="Pisa Tower"    200    1    join=inline    joinLevel=1
 
 019_29_09 Linked Entity Subquery With A Matching Type Hint
     [Documentation]    4.9 EXAMPLE 14: the EntityType hint restricts the linked lookup;
     ...    the target IS a Building, so the match is preserved
     [Tags]    e-query    4_9    since_v1.9.1
-    managedBy{Building:name}=="Pisa Tower"    200    1
+    managedBy{Building:name}=="Pisa Tower"    200    1    join=inline    joinLevel=1
 
 019_29_10 Linked Entity Subquery With A Non-Matching Type Hint
     [Documentation]    4.9 EXAMPLE 14: "only such NGSI-LD Entities need to be
     ...    considered" — a Vehicle hint excludes the Building target, so no match
     [Tags]    e-query    4_9    since_v1.9.1
-    managedBy{Vehicle:name}=="Pisa Tower"    200    0
+    managedBy{Vehicle:name}=="Pisa Tower"    200    0    join=inline    joinLevel=1
 
 019_29_11 Ordering Operator On A Relationship Never Matches
     [Documentation]    4.9 p.89: "If the target element corresponds to a Relationship or
@@ -122,12 +122,15 @@ ${entity_type}=                 Building
 *** Keywords ***
 Query Entities Expecting Count
     [Arguments]    ${q}    ${expected_status_code}    ${expected_count}    ${expandValues}=${EMPTY}
+    ...    ${join}=${EMPTY}    ${joinLevel}=${EMPTY}
     ${response}=    Query Entities
     ...    entity_types=${entity_type}
     ...    q=${q}
     ...    count=true
     ...    context=${ngsild_test_suite_context}
     ...    expandValues=${expandValues}
+    ...    join=${join}
+    ...    joinLevel=${joinLevel}
     Check Response Status Code    ${expected_status_code}    ${response.status_code}
     IF    $expected_count is not None
         Check Response Headers Containing NGSILD-Results-Count Equals To

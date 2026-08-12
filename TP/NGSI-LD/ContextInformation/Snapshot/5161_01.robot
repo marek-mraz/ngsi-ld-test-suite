@@ -11,6 +11,7 @@ Library             RequestsLibrary
 Library             Collections
 Resource            ${EXECDIR}/resources/ApiUtils/Common.resource
 Resource            ${EXECDIR}/resources/AssertionUtils.resource
+Resource            ${EXECDIR}/resources/MockServerUtils.resource
 
 Test Setup          Create Fixture Entities
 Test Teardown       Clean Up
@@ -130,6 +131,50 @@ ${slow}=    urn:ngsi-ld:Vehicle:snapslow
     Check Response Status Code    200    ${response.status_code}
 
     Delete Snapshot    ${loc}
+
+5161_01_05 Snapshot Fill Follows The Distributed Query Behaviour
+    [Documentation]    5.16.1.4: snapshot queries are executed "following the
+    ...    behaviour described in clause 5.7.2.4" — Entities served by a
+    ...    registered Context Source become part of the snapshot alongside
+    ...    local ones, and the q applies to all of them.
+    [Tags]    snapshots    5_16_1    dist-ops    since_v1.9.1
+
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${reg_id}=    Set Variable    urn:ngsi-ld:ContextSourceRegistration:snapfed5161
+    ${reg}=    Set Variable
+    ...    {"id": "${reg_id}", "type": "ContextSourceRegistration", "information": [{"entities": [{"type": "Vehicle"}]}], "operations": ["queryEntity"], "endpoint": "http://${context_source_host}:${context_source_port}"}
+    ${response}=    POST    url=${url}/csourceRegistrations    data=${reg}    headers=${headers}    expected_status=any
+    Check Response Status Code    201    ${response.status_code}
+    Start Context Source Mock Server
+
+    ${response}=    POST    url=${url}/snapshots
+    ...    data={"type": "Snapshot", "snapshotQueries": [{"type": "Query", "entities": [{"type": "Vehicle"}], "q": "speed>50"}]}
+    ...    headers=${headers}    expected_status=any
+    Check Response Status Code    201    ${response.status_code}
+    ${loc}=    Get From Dictionary    ${response.headers}    Location
+    ${loc}=    Evaluate    "${loc}".replace("/ngsi-ld/v1", "")
+
+    # the background fill queries the registered Context Source
+    Wait For Request    ${15}
+    ${path}=    Get Request Url
+    Should Contain    ${path}    /ngsi-ld/v1/entities
+    Set Reply Header    Content-Type    application/json
+    Reply By    200    [{"id": "urn:ngsi-ld:Vehicle:snapfedremote", "type": "Vehicle", "speed": {"type": "Property", "value": 88}}]
+
+    ${snapshot}=    Wait Until Ready    ${loc}
+    Should Be Equal    ${snapshot}[snapshotStatus]    success
+    &{sheaders}=    Create Dictionary    NGSILD-Snapshot=${snapshot}[id]
+    ${response}=    GET    url=${url}/entities    params=type=Vehicle    headers=${sheaders}    expected_status=any
+    Check Response Status Code    200    ${response.status_code}
+    ${ids}=    Evaluate    sorted(e["id"] for e in $response.json())
+    Should Contain    ${ids}    urn:ngsi-ld:Vehicle:snapfedremote
+    Should Contain    ${ids}    ${fast}
+    Should Not Contain    ${ids}    ${slow}
+
+    Delete Snapshot    ${loc}
+    ${response}=    DELETE    url=${url}/csourceRegistrations/${reg_id}    expected_status=any
+    Check Response Status Code    204    ${response.status_code}
+    Stop Context Source Mock Server
 
 
 *** Keywords ***

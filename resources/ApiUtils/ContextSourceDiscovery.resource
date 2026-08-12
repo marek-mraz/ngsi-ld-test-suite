@@ -90,6 +90,8 @@ Query Context Source Registrations With Return
     ...    ${type}=${EMPTY}
     ...    ${attrs}=${EMPTY}
     ...    ${q}=${EMPTY}
+    ...    ${csf}=${EMPTY}
+    ...    ${scopeQ}=${EMPTY}
     ...    ${georel}=${EMPTY}
     ...    ${geometry}=${EMPTY}
     ...    ${coordinates}=${EMPTY}
@@ -116,6 +118,8 @@ Query Context Source Registrations With Return
     IF    '${type}'!=''    Set To Dictionary    ${params}    type=${type}
     IF    '${attrs}'!=''    Set To Dictionary    ${params}    attrs=${attrs}
     IF    '${q}'!=''    Set To Dictionary    ${params}    q=${q}
+    IF    '${csf}'!=''    Set To Dictionary    ${params}    csf=${csf}
+    IF    '${scopeQ}'!=''    Set To Dictionary    ${params}    scopeQ=${scopeQ}
     IF    '${georel}'!=''    Set To Dictionary    ${params}    georel=${georel}
     IF    '${geometry}'!=''
         Set To Dictionary    ${params}    geometry=${geometry}

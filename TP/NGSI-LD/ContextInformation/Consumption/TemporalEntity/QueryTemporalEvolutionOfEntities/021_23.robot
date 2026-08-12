@@ -22,45 +22,54 @@ ${third_id}=        ${BUILDING_ID_PREFIX}3
 
 
 *** Test Cases ***    ORDER_BY    EXPECTED_ORDER
-021_23_01 QueryWithOrderByAttribute
-    [Documentation]    Check that one can query entities with orderBy on an attribute
+021_23_01 QueryWithOrderByAttributeIsRejected
+    [Documentation]    5.7.4.4: "If the ordering parameter is present and
+    ...    refers an entity name other than id, then an error of type
+    ...    BadRequestData shall be raised."
     [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    name    ${asc}
+    [Template]    Query Temporal Entities With Rejected OrderBy
+    name
 021_23_02 QueryWithOrderById
     [Documentation]    Check that one can query entities with orderBy on id
     [Tags]    te-query    5_7_4    4_23    since_v1.9.1
     id    ${asc}
-021_23_03 QueryWithOrderByCreatedAt
-    [Documentation]    Check that one can query entities with orderBy on createdAt
+021_23_03 QueryWithOrderByIdDescending
+    [Documentation]    5.7.4.4 allows ordering by id; 4.23 direction applies
     [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    createdAt    ${created}
-021_23_04 QueryWithOrderByNameCreatedAt
-    [Documentation]    Check that one can query entities with orderBy on an attribute createdAt
+    id;desc    ${desc}
+021_23_04 QueryWithOrderByCreatedAtIsRejected
+    [Documentation]    5.7.4.4: system members other than id are rejected on
+    ...    the temporal query
     [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    name.createdAt    ${created}
-021_23_05 QueryWithOrderBySubAttribute
-    [Documentation]    Check that one can query entities with orderBy on an attribute subproperty
+    [Template]    Query Temporal Entities With Rejected OrderBy
+    createdAt
+021_23_05 QueryWithOrderBySubAttributeIsRejected
+    [Documentation]    5.7.4.4: attribute paths are rejected on the temporal
+    ...    query
     [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    name.subProperty    ${asc}
-021_23_06 QueryWithOrderByAscending
-    [Documentation]    Check that one can query entities with orderBy on a name ascending
+    [Template]    Query Temporal Entities With Rejected OrderBy
+    name.subProperty
+021_23_06 QueryWithMultipleOrderByIsRejected
+    [Documentation]    5.7.4.4: every ordering member must be id — a list
+    ...    containing any other member is rejected
     [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    name;asc    ${asc}
-021_23_07 QueryWithOrderByDescending
-    [Documentation]    Check that one can query entities with orderBy on a name descending
-    [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    name;desc    ${desc}
-021_23_08 QueryWithMultipleOrderBy
-    [Documentation]    Check that one can query entities with orderBy on multiple members
-    [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    type,name    ${asc}
-021_23_09 QueryWithComplexOrderBy
-    [Documentation]    Check that one can query entities with a complex orderBy
-    [Tags]    te-query    5_7_4    4_23    since_v1.9.1
-    type;asc,name.subProperty;desc,name;asc    ${desc}
+    [Template]    Query Temporal Entities With Rejected OrderBy
+    id,name
 
 
 *** Keywords ***
+Query Temporal Entities With Rejected OrderBy
+    [Documentation]    5.7.4.4: temporal ordering may only refer to "id"
+    [Arguments]    ${orderBy}
+    ${response}=    Query Temporal Representation Of Entities
+    ...    entity_types=Building
+    ...    orderBy=${orderBy}
+    ...    timerel=after
+    ...    timeAt=1970-01-01T00:00:00Z
+    ...    timeproperty=createdAt
+    ...    context=${ngsild_test_suite_context}
+    Check Response Status Code    400    ${response.status_code}
+
 Query Temporal Entities With OrderBy
     [Documentation]    Query temporal evolution of entities giving an orderBy
     [Arguments]    ${orderBy}    ${expected_order}

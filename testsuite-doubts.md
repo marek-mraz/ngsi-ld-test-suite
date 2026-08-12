@@ -2764,3 +2764,15 @@ type-only groups, same argument as the nine `_exc` TPs fork-fixed on
 2026-08-10. Fork fix: the fixture's mode becomes `redirect` (equally
 non-default, legal with idPattern), keeping the TP's purpose — a non-default
 mode with an operations list. Raise upstream together with the `_exc` batch.
+
+## 2026-08-12 — 021_23: temporal orderBy by attribute contradicts 5.7.4.4
+
+`021_23` (fork extension, init import) asserted 200 + ordering for temporal
+queries with `orderBy=name`, `createdAt`, `name.subProperty`, `type,name`,
+etc. CIM 009 V1.9.1 clause 5.7.4.4 is explicit: "If the ordering parameter
+is present and refers an entity name other than \"id\", then an error of
+type BadRequestData shall be raised" — the temporal query, unlike 5.7.2
+(entity query, any member per 4.23), permits ordering ONLY by `id`.
+Fork fix: cases rewritten — orderBy `id` / `id;desc` keep the 200+order
+assertions; every non-id member now expects 400 BadRequestData via the new
+`Query Temporal Entities With Rejected OrderBy` keyword.

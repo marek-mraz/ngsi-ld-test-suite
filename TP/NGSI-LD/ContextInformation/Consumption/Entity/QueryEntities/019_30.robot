@@ -28,6 +28,8 @@ Test Template       Query Entities With Geoquery Expecting Count
 *** Variables ***
 ${first_entity_filename}=       building-geo-hole-probe.jsonld
 ${second_entity_filename}=      building-geo-shell-probe.jsonld
+${third_entity_filename}=       building-geo-highlat-probe.jsonld
+${fourth_entity_filename}=      building-geo-east-probe.jsonld
 ${holed_polygon}=               [[[0,0],[10,0],[10,10],[0,10],[0,0]],[[4,4],[6,4],[6,6],[4,6],[4,4]]]
 
 
@@ -82,6 +84,33 @@ ${holed_polygon}=               [[[0,0],[10,0],[10,10],[0,10],[0,0]],[[4,4],[6,4
     [Tags]    e-query    4_10    since_v1.9.1
     near;maxDistance==2000    Point    [8,40]    200    0
 
+019_30_09 Near Measures From The Closest Point Of An Extended Reference
+    [Documentation]    4.10 nearRel "in meters": with a LineString reference
+    ...    [0,60]->[10,60], the east-probe point at [10,60.009] is ~1 km from the
+    ...    LINE (but ~557 km from its first coordinate) — it must match, so the
+    ...    distance is to the reference geometry, not a representative point
+    [Tags]    e-query    4_10    since_v1.9.1
+    near;maxDistance==2000    LineString    [[0,60],[10,60]]    200    1
+
+019_30_10 Near Extended Reference Negative Control
+    [Documentation]    4.10: the same probe is ~110 km from the lat-61 line —
+    ...    it must NOT match a 2 km buffer around it
+    [Tags]    e-query    4_10    since_v1.9.1
+    near;maxDistance==2000    LineString    [[0,61],[10,61]]    200    0
+
+019_30_11 Near Closest Point Selection Is Metric At High Latitude
+    [Documentation]    4.10 "in meters": from [0,85], the highlat probe line's
+    ...    lon-offset end [1,85] is ~9.7 km away (1 deg of longitude at lat 85)
+    ...    while its lat-offset end [0,85.6] is ~67 km — metric selection must
+    ...    pick the lon-offset end, planar lon/lat selection would not
+    [Tags]    e-query    4_10    since_v1.9.1
+    near;maxDistance==20000    Point    [0,85]    200    1
+
+019_30_12 Near High Latitude Negative Control
+    [Documentation]    4.10: ~9.6 km is outside a 5 km buffer — must NOT match
+    [Tags]    e-query    4_10    since_v1.9.1
+    near;maxDistance==5000    Point    [0,85]    200    0
+
 
 *** Keywords ***
 Query Entities With Geoquery Expecting Count
@@ -116,7 +145,23 @@ Setup Initial Entities
     ...    ${second_entity_id}
     ...    ${CONTENT_TYPE_LD_JSON}
     Check Response Status Code    201    ${create_response2.status_code}
+    ${third_entity_id}=    Generate Random Building Entity Id
+    Set Suite Variable    ${third_entity_id}
+    ${create_response3}=    Create Entity Selecting Content Type
+    ...    ${third_entity_filename}
+    ...    ${third_entity_id}
+    ...    ${CONTENT_TYPE_LD_JSON}
+    Check Response Status Code    201    ${create_response3.status_code}
+    ${fourth_entity_id}=    Generate Random Building Entity Id
+    Set Suite Variable    ${fourth_entity_id}
+    ${create_response4}=    Create Entity Selecting Content Type
+    ...    ${fourth_entity_filename}
+    ...    ${fourth_entity_id}
+    ...    ${CONTENT_TYPE_LD_JSON}
+    Check Response Status Code    201    ${create_response4.status_code}
 
 Delete Initial Entities
     Delete Entity    ${first_entity_id}
     Delete Entity    ${second_entity_id}
+    Delete Entity    ${third_entity_id}
+    Delete Entity    ${fourth_entity_id}

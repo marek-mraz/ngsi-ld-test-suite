@@ -71,7 +71,7 @@ Create Initial @context condition from an external server
     Stop @context Local Server
 
     ${response}=    Delete a @context    ${uri}    true
-    Check Response Status Code    503    ${response.status_code}
+    Check Response Status Code    504    ${response.status_code}
 
 Delete Initial @context condition from an external server
     Log    Delete initial contidions

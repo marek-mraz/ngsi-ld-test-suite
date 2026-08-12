@@ -19,7 +19,7 @@ ${unavailable_jsonldContext_subscription_file_path}=    subscriptions/subscripti
     ${invalid_jsonldContext_subscription_file_path}    ${ERROR_TYPE_BAD_REQUEST_DATA}    400
 028_07_02 Subscription With Unavailable jsonldContext
     [Tags]    sub-create    5_8_1    since_v1.7.1
-    ${unavailable_jsonldContext_subscription_file_path}    ${ERROR_TYPE_LD_CONTEXT_NOT_AVAILABLE}    503
+    ${unavailable_jsonldContext_subscription_file_path}    ${ERROR_TYPE_LD_CONTEXT_NOT_AVAILABLE}    504
 
 
 *** Keywords ***

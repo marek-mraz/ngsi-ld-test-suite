@@ -31,8 +31,8 @@ ${uri}                      /api/v1/context.jsonld
 
     ${response}=    Delete a @context    ${uri}    true
 
-    Check Response Status Code    503    ${response.status_code}
-    Check Response Reason set to    ${response.reason}    Service Unavailable
+    Check Response Status Code    504    ${response.status_code}
+    Check Response Reason set to    ${response.reason}    Gateway Timeout
     Check Response Body Containing ProblemDetails Element
     ...    ${response.json()}
     ...    ${ERROR_TYPE_LD_CONTEXT_NOT_AVAILABLE}

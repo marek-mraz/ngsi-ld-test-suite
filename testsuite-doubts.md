@@ -551,6 +551,11 @@ path is exercised instead of the 400 (non-URI) path.
 
 ## 18. `051_05_01`, `053_05_01` — wants 503, spec says 504
 
+**Status:** RESOLVED 2026-08-12 — fork fixtures now assert 504 /
+"Gateway Timeout" (also `043_01`, `028_07`, which pinned the V1.8-era
+503); the broker mapping was restored to the V1.9.1 Table 6.3.2-1
+value (504) in the same change.
+
 **Hit:** both tests stop the local @context server, then hit the
 broker with a path that triggers `LdContextNotAvailable` (e.g. DELETE
 ?reload=true on a Cached context whose source is gone). They assert

@@ -23,7 +23,7 @@ Library             HttpCtrl.Server
 556_01_01 Remote Context Without @context Member Is BadRequestData
     [Documentation]    5.5.6: the remote document is retrieved (200) but is
     ...    not a JSON-LD @context (no @context member) → 400 BadRequestData,
-    ...    NOT 503 LdContextNotAvailable.
+    ...    NOT 504 LdContextNotAvailable.
     [Tags]    e-create    cb-ldcontext    5_5_6    since_v1.9.1
     Start Server    ${context_server_host}    ${context_server_port}
     Set Stub Reply    GET    /api/v1/invalid.jsonld    200    {"note": "no context member here"}

@@ -2823,3 +2823,30 @@ BadRequestData — the premise "aux reg whose ops would allow a write" is not
 representable on a conformant broker. Fixture switched to
 context-source-registration-vehicle-retrieve-ops.jsonld; the negative
 (aux + write op → 400) is already pinned by extension TP 5922_01.
+
+## 2026-08-13 — 053_07_01 timescale-cell flake: fixtures depend on live smartdatamodels.org
+
+**Suite/environment defect.** CI matrix runs (6) and (9) failed
+`053_07_01` in the timescale cell only. Decompressed robot log shows the
+truth: the setup's `POST /subscriptions` answered **504 LdContextNotAvailable
+"fetching http://smartdatamodels.org/context.jsonld: error sending request"**
+— then `Retrieve Subscription` 404s and `Get From Dictionary jsonldContext`
+raises KeyError on the ProblemDetails body (the setup keyword checks no
+status). Mechanism: every sibling test's teardown deletes the Cached
+@context row (`Delete a @context` over the fixture's URL list), and the
+persisted row is the broker's one existence truth for Cached entries — so
+each next test forces a LIVE refetch of smartdatamodels.org; one transient
+network failure lands the 504 on whichever test draws it (the ts cell, being
+the last of three parallel cells to hammer the host, drew it twice).
+
+**Broker:** correct — LdContextNotAvailable 504 per Table 6.3.2-1 is exactly
+what a failed remote @context fetch must produce.
+
+**Fork fix:** the three fixtures naming smartdatamodels.org
+(`subscription-with-implicitlycreated-contexts.jsonld`,
+`@context-cached-valid.json`, `@context-cached-one-valid.json`) now use the
+fork's own GitHub-raw-hosted context instead — the suite already depends on
+raw.githubusercontent.com, so no new infrastructure. Test semantics
+preserved (the tests need "a fetchable remote @context", not that specific
+host). jsonldContext tree 63/63 locally on timescale (the 2 remaining local
+fails are the standing 050_04/051_03 9090-hardcode artifacts, green in CI).

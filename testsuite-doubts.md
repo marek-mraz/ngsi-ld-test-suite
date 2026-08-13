@@ -2850,3 +2850,15 @@ raw.githubusercontent.com, so no new infrastructure. Test semantics
 preserved (the tests need "a fetchable remote @context", not that specific
 host). jsonldContext tree 63/63 locally on timescale (the 2 remaining local
 fails are the standing 050_04/051_03 9090-hardcode artifacts, green in CI).
+
+---
+
+## 19. No TP can cover bracket-less q on a LanguageProperty (4.9 gap)
+
+4.9 (p. 90) defines LanguageProperty matching only for `attr[lang]` and
+`attr[*]`; bracket-less `attr=="x"` on a LanguageProperty is undefined in
+the clause, so no spec-grounded TP is writable for it. Antares answers
+"no match" (both evaluator and SQL prefilter, parity-pinned). Raised in
+the broker repo's docs/upstream/etsi-raises.md context (error.md
+2026-08-13 entry); do not add a TP asserting either behaviour until the
+clause defines the case.

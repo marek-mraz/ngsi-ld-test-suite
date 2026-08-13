@@ -186,6 +186,87 @@ Delete Registration At Broker
     ...    expected_status=any
     RETURN    ${response}
 
+Merge Entity Via Broker
+    [Documentation]    5.6.17 Merge Entity (PATCH /entities/{id}).
+    [Arguments]    ${at}    ${entity_id}    ${fragment}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${eid}=    Evaluate    __import__('urllib.parse', fromlist=['quote']).quote($entity_id, safe='')
+    ${response}=    PATCH
+    ...    url=${at}/entities/${eid}
+    ...    json=${fragment}
+    ...    headers=${headers}
+    ...    expected_status=any
+    RETURN    ${response}
+
+Replace Entity Via Broker
+    [Documentation]    5.6.18 Replace Entity (PUT /entities/{id}).
+    [Arguments]    ${at}    ${entity_id}    ${entity}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${eid}=    Evaluate    __import__('urllib.parse', fromlist=['quote']).quote($entity_id, safe='')
+    ${response}=    PUT
+    ...    url=${at}/entities/${eid}
+    ...    json=${entity}
+    ...    headers=${headers}
+    ...    expected_status=any
+    RETURN    ${response}
+
+Replace Attr Via Broker
+    [Documentation]    5.6.19 Replace Attribute (PUT /entities/{id}/attrs/{attr}).
+    [Arguments]    ${at}    ${entity_id}    ${attr}    ${fragment}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${eid}=    Evaluate    __import__('urllib.parse', fromlist=['quote']).quote($entity_id, safe='')
+    ${response}=    PUT
+    ...    url=${at}/entities/${eid}/attrs/${attr}
+    ...    json=${fragment}
+    ...    headers=${headers}
+    ...    expected_status=any
+    RETURN    ${response}
+
+Batch Op Via Broker
+    [Documentation]    5.6.7-5.6.10 batch operations (POST /entityOperations/{op}).
+    [Arguments]    ${at}    ${op}    ${payload}    &{params}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${response}=    POST
+    ...    url=${at}/entityOperations/${op}
+    ...    json=${payload}
+    ...    params=${params}
+    ...    headers=${headers}
+    ...    expected_status=any
+    RETURN    ${response}
+
+Purge Entities Via Broker
+    [Documentation]    5.6.21 Purge Entities (DELETE /entities?…).
+    [Arguments]    ${at}    &{params}
+    ${response}=    DELETE
+    ...    url=${at}/entities
+    ...    params=${params}
+    ...    expected_status=any
+    RETURN    ${response}
+
+Create Subscription At Broker
+    [Arguments]    ${at}    ${sub_id}    ${etype}    ${notify_uri}    ${q}=${EMPTY}
+    ${sub}=    Evaluate
+    ...    {"id": $sub_id, "type": "Subscription", "entities": [{"type": $etype}], "notification": {"endpoint": {"uri": $notify_uri, "accept": "application/json"}}}
+    IF    '${q}' != ''
+        Set To Dictionary    ${sub}    q=${q}
+    END
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${response}=    POST
+    ...    url=${at}/subscriptions
+    ...    json=${sub}
+    ...    headers=${headers}
+    ...    expected_status=any
+    Should Be Equal As Integers    ${response.status_code}    201
+    RETURN    ${response}
+
+Delete Subscription At Broker
+    [Arguments]    ${at}    ${sub_id}
+    ${sid}=    Evaluate    __import__('urllib.parse', fromlist=['quote']).quote($sub_id, safe='')
+    ${response}=    DELETE
+    ...    url=${at}/subscriptions/${sid}
+    ...    expected_status=any
+    RETURN    ${response}
+
 Simple Vehicle Entity
     [Documentation]    Minimal entity of ${etype} with a speed Property; an
     ...    optional observedAt makes 4.5.5.3 recency deterministic.

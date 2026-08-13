@@ -3,8 +3,8 @@ Documentation       Check the OrderingParams data type (CIM 009 clause 5.2.43,
 ...                 Table 5.2.43-1) on POST /entityOperations/query: orderBy String[]
 ...                 orders the payload, coordinates (a JSON array, mandatory when
 ...                 orderBy uses order by distance) + geometry form the distance
-...                 reference, and an explicit collation is refused while only
-...                 codepoint order is offered.
+...                 reference, and an explicit collation is applied to string
+...                 ordering (an unparseable collation tag is refused loudly).
 ...
 ...                 Antares extension TP — no official TP sends the ordering member.
 
@@ -46,11 +46,25 @@ ${far_vehicle}=     urn:ngsi-ld:Vehicle:52430-far
     [Tags]    e-query    5_2_43    since_v1.9.1
     Post Ordering Query Expecting    400    {"orderBy": ["id;asc"], "geometry": 5}
 
-5243_01_05 An Explicit Collation Is Refused Loudly
-    [Documentation]    4.23.1: only codepoint order is offered — silent mis-ordering
-    ...    would violate "shall be ordered according to the collation given"
+5243_01_05 An Explicit Collation Is Honoured
+    [Documentation]    4.23.3/5.2.43: results "shall be ordered according to the
+    ...    collation given" — German collation sorts "Ähre" before "Zebra", while
+    ...    plain codepoint order would put "Zebra" (U+005A) before "Ähre" (U+00C4).
     [Tags]    e-query    5_2_43    since_v1.9.1
-    Post Ordering Query Expecting    400    {"orderBy": ["id;asc"], "collation": "de-u-co-phonebk"}
+    ${body}=    Post Ordering Query Expecting    200
+    ...    {"orderBy": ["name;asc"], "collation": "de-u-co-phonebk"}
+    ${ahre}=    Evaluate    $body.find("52430-far")
+    ${zebra}=    Evaluate    $body.find("52430-near")
+    Should Be True    ${ahre} >= 0    the Ähre-named vehicle must be in the response
+    Should Be True    ${zebra} >= 0    the Zebra-named vehicle must be in the response
+    Should Be True    ${ahre} < ${zebra}    de collation must order Ähre before Zebra
+
+5243_01_06 An Invalid Collation Tag Is Refused Loudly
+    [Documentation]    4.23.3: a collation that cannot be honoured must be refused
+    ...    (BadRequestData) — silent mis-ordering would violate "shall be ordered
+    ...    according to the collation given".
+    [Tags]    e-query    5_2_43    since_v1.9.1
+    Post Ordering Query Expecting    400    {"orderBy": ["id;asc"], "collation": "not a bcp47 tag!!"}
 
 
 *** Keywords ***
@@ -68,11 +82,11 @@ Post Ordering Query Expecting
     RETURN    ${response.text}
 
 Setup Ordering Entities
-    FOR    ${id}    ${lon}    ${lat}    IN
-    ...    ${near_vehicle}    ${8.01}    ${40.01}
-    ...    ${far_vehicle}    ${10.0}    ${45.0}
+    FOR    ${id}    ${lon}    ${lat}    ${name}    IN
+    ...    ${near_vehicle}    ${8.01}    ${40.01}    Zebra
+    ...    ${far_vehicle}    ${10.0}    ${45.0}    Ähre
         ${payload}=    Evaluate
-        ...    json.dumps({"id": $id, "type": "Vehicle", "location": {"type": "GeoProperty", "value": {"type": "Point", "coordinates": [$lon, $lat]}}})
+        ...    json.dumps({"id": $id, "type": "Vehicle", "name": {"type": "Property", "value": $name}, "location": {"type": "GeoProperty", "value": {"type": "Point", "coordinates": [$lon, $lat]}}})
         ...    modules=json
         ${response}=    POST
         ...    url=${url}/${ENTITIES_ENDPOINT_PATH}

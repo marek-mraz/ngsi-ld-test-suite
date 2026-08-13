@@ -7,8 +7,7 @@ Documentation       Verify the 4.3.6.2 auxiliary consumption-only rule on provis
 ...                 Antares extension TP — the official aux TPs (D010_01_aux,
 ...                 D011_01_aux) prove the consumption side (supplementary merge,
 ...                 local wins). Nothing covers the provision side: a matching
-...                 auxiliary registration must never receive a forwarded write,
-...                 even when its operations list would allow one.
+...                 auxiliary registration must never receive a forwarded write.
 
 Resource            ${EXECDIR}/resources/ApiUtils/Common.resource
 Resource            ${EXECDIR}/resources/ApiUtils/ContextInformationProvision.resource
@@ -24,15 +23,17 @@ Test Teardown       Delete Created Entity And Registration And Stop Context Sour
 *** Variables ***
 ${entity_payload_filename}              vehicle-simple-attributes.jsonld
 ${fragment_filename}                    vehicle-speed-isParked-fragment.json
-${registration_payload_file_path}       csourceRegistrations/context-source-registration-vehicle-redirection-ops.jsonld
+# 5.9.2.4: auxiliary registrations may only declare retrieveOps/retrieveEntity/queryEntity
+# (anything else is 400, pinned by 5922_01) — so the aux reg here carries retrieveOps.
+${registration_payload_file_path}       csourceRegistrations/context-source-registration-vehicle-retrieve-ops.jsonld
 
 
 *** Test Cases ***
 436_02_01 Create Is Not Forwarded To An Auxiliary Registration
     [Documentation]    4.3.6.2: auxiliary distributed operations are limited to
-    ...    consumption. The auxiliary registration declares redirectionOps (which
-    ...    includes createEntity), yet a create must be serviced locally only and
-    ...    never forwarded to the auxiliary Context Source.
+    ...    consumption. A create matching an auxiliary registration must be
+    ...    serviced locally only and never forwarded to the auxiliary Context
+    ...    Source.
     [Tags]    dist-ops    4_3_6_2    5_6_1    since_v1.9.1
     ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}
     Check Response Status Code    201    ${response.status_code}

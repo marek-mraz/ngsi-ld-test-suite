@@ -30,7 +30,10 @@ IOP_CNF_01_01 Query Entities Of Type OffStreetParking Via POST
 
     #Agent queries all entities with type OffStreetParking in A and checks for a successful response that contains the attributes of both entities in B and C.
     @{entities}=    Create List    ${entity_id}    ${second_entity_id}
-    ${response}=    Query Entities Via POST   entities=${entities}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
+    # 5.2.23/5.2.33: the Query 'entities' member is an EntitySelector array — objects
+    # with mandatory 'type' — never bare id strings.
+    ${selectors}=    Evaluate    [{"id": i, "type": "OffStreetParking"} for i in $entities]
+    ${response}=    Query Entities Via POST   entities=${selectors}    broker_url=${b1_url}    context=${ngsild_test_suite_context}
     Check Response Status Code    200    ${response.status_code}
     @{payload}=    Set Variable   ${response.json()}
     # Registered attrs only (5.2.10/5.12): inclusive→B covers availableSpotsNumber+totalSpotsNumber,
@@ -43,12 +46,13 @@ IOP_CNF_01_01 Query Entities Of Type OffStreetParking Via POST
     Dictionary Should Contain Key    ${second_merged}    availableSpotsNumber
 
     #Agent queries all entities with type OffStreetParking in B and C
-    ${response}=    Query Entities Via POST   entities=${entities}    broker_url=${b2_url}    context=${ngsild_test_suite_context}
+    ${response}=    Query Entities Via POST   entities=${selectors}    broker_url=${b2_url}    context=${ngsild_test_suite_context}
     @{first_expected_payload}=    Set Variable    ${response.json()}
     Check Response Body Containing Entities URIS set to    ${entities}    ${response.json()}
 
     @{single_entity_id}=    Create List    ${entity_id}
-    ${response}=    Query Entities Via POST   entities=${single_entity_id}    broker_url=${b3_url}    context=${ngsild_test_suite_context}
+    ${single_selector}=    Evaluate    [{"id": i, "type": "OffStreetParking"} for i in $single_entity_id]
+    ${response}=    Query Entities Via POST   entities=${single_selector}    broker_url=${b3_url}    context=${ngsild_test_suite_context}
     @{second_expected_payload}=    Set Variable    ${response.json()}
     Check Response Body Containing Entities URIS set to    ${single_entity_id}    ${response.json()}
 

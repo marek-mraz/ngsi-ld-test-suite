@@ -2781,3 +2781,45 @@ type BadRequestData shall be raised" — the temporal query, unlike 5.7.2
 Fork fix: cases rewritten — orderBy `id` / `id;desc` keep the 200+order
 assertions; every non-id member now expects 400 BadRequestData via the new
 `Query Temporal Entities With Rejected OrderBy` keyword.
+
+## 2026-08-13 — Official dist-ops/IOP setups create entities before exclusive/redirect registrations (5.9.2.4 Conflict)
+
+**Suite defect (14 official files + 1 IOP).** CIM 009 V1.9.1 5.9.2.4 (p.227-228)
+added registration-vs-entity conflict rules: an **exclusive** registration
+"shall" be refused with Conflict if an Entity already exists for the supplied
+Entity ID carrying any registered Attribute; a **redirect** registration
+"shall" be refused if ANY existing Entity matches it. The official `_exc`/`_red`
+TPs (D005_01_exc, D006_01/02_red, D009_01_exc, D014_01/02_exc, D015_01_exc,
+IOP RetrieveEntity IOP_CNF_04_02) pre-create the very entities their setup then
+registers exclusive/redirect over — a spec-conformant broker must answer 409 and
+the setup dies asserting 201. The redirect TPs scoped `idPattern=urn:ngsi-ld:Vehicle:*`
+(D013_01/02_red, D014_01/02_red, D015_01_red, D016_01_red) additionally conflict
+with ANY residual Vehicle from earlier tests, including ones earlier PASSING
+tests legitimately leave behind (e.g. D014_01_inc's updated entities) — so they
+fail even with perfect per-test hygiene. Seen in CI matrix run 2026-08-13 on all
+three stores identically (65 failures, deterministic).
+
+**Broker:** correct — `csource::check_entity_conflict`, message cites 5.9.2.4;
+clause text verified verbatim against the PDF.
+
+**Fork fix:** (a) genuine violators: setup order swapped — registration first,
+then the local copies with `local=true` (entity creation carries no 5.9.2.4
+restriction, so the same test state is reached legally); (b) the
+`idPattern`-scoped `_red` setups start with `Purge Entities type=Vehicle
+local=true` so residual Vehicles cannot legally 409 the registration;
+(c) IOP RetrieveEntity IOP_CNF_04_02: B's local copy created after B's two
+redirect registrations, `local=true`. D001_01/02/03_03_inc needed no edit —
+their failures were pure cascade from the leaked setups. All touched trees
+36/36 + 17/17 green against the strict broker locally. Status: to be raised
+upstream (the official TPs predate the V1.9.1 conflict rules; their `since_v1.6.1`
+tags corroborate).
+
+## 2026-08-13 — 436_02 aux fixture declared redirectionOps (5.9.2.4 aux ops limit)
+
+Fork extension TP 436_02 registered `mode=auxiliary` from the redirectionOps
+fixture. 5.9.2.4 (p.228): auxiliary operations must be one of
+retrieveOps/retrieveEntity/queryEntity "or a combination thereof", else
+BadRequestData — the premise "aux reg whose ops would allow a write" is not
+representable on a conformant broker. Fixture switched to
+context-source-registration-vehicle-retrieve-ops.jsonld; the negative
+(aux + write op → 400) is already pinned by extension TP 5922_01.

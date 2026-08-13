@@ -69,8 +69,6 @@ Setup Initial Context Source Registrations
     Set Suite Variable    ${entity_id}
     ${response}=    Create Entity    ${no_location_entity_payload_filename}    ${entity_id}    broker_url=${b1_url}
     Check Response Status Code    201    ${response.status_code}
-    ${response}=    Create Entity    ${no_location_entity_payload_filename}    ${entity_id}    broker_url=${b2_url}
-    Check Response Status Code    201    ${response.status_code}
     ${response}=    Create Entity    ${no_location_entity_payload_filename}    ${entity_id}    broker_url=${b3_url}
     Check Response Status Code    201    ${response.status_code}
     ${response}=    Create Entity    ${full_entity_payload_filename}    ${entity_id}    broker_url=${b4_url}
@@ -109,6 +107,12 @@ Setup Initial Context Source Registrations
     ...    broker_url=${b5_url}
     ...    mode=redirect
     ${response}=    Create Context Source Registration With Return    ${registration_payload}    broker_url=${b2_url}
+    Check Response Status Code    201    ${response.status_code}
+
+    # 5.9.2.4: a redirect registration is refused with Conflict if an existing entity
+    # already matches it — B's local copy of the entity must therefore be created AFTER
+    # B's two redirect registrations, and local=true so the create is not forwarded.
+    ${response}=    Create Entity    ${no_location_entity_payload_filename}    ${entity_id}    broker_url=${b2_url}    local=true
     Check Response Status Code    201    ${response.status_code}
 
     ${registration_id4}=     Generate Random CSR Id

@@ -57,6 +57,10 @@ D013_02_red Batch Upsert Entities With Redirect Registration With Update Flag
 
 *** Keywords ***
 Setup Entity Id And Registration And Start Context Source Mock Server
+    # 5.9.2.4: a redirect registration is refused with Conflict if ANY existing entity
+    # matches it; this registration matches urn:ngsi-ld:Vehicle:* so residual Vehicles
+    # from earlier tests would legally 409 it. Start from a clean local slate.
+    Purge Entities    type=Vehicle    local=true    context=${ngsild_test_suite_context}
     ${first_entity_id}=    Generate Random Vehicle Entity Id
     Set Suite Variable    ${first_entity_id}
     ${second_entity_id}=    Generate Random Vehicle Entity Id

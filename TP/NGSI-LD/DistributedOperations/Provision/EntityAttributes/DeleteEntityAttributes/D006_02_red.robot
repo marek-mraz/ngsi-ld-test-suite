@@ -44,9 +44,6 @@ Setup Entity Id And Registration And Start Context Source Mock Server
     ${entity_id}=    Generate Random Vehicle Entity Id
     Set Suite Variable    ${entity_id}
 
-    ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}
-    Check Response Status Code    201    ${response.status_code}
-
     ${registration_id}=    Generate Random CSR Id
     Set Suite Variable    ${registration_id}
     ${registration_payload}=    Prepare Context Source Registration From File
@@ -68,6 +65,12 @@ Setup Entity Id And Registration And Start Context Source Mock Server
     ...    endpoint=/broker2
     ${response}=    Create Context Source Registration With Return    ${registration_payload}
     Check Response Status Code    201    ${response.status_code}
+    # 5.9.2.4: a redirect registration is refused with Conflict if an existing entity
+    # already matches it — so the local copy must be created AFTER the registrations,
+    # and local=true so no forwarding is attempted.
+    ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}    local=true
+    Check Response Status Code    201    ${response.status_code}
+
     Start Context Source Mock Server
 
 Delete Registration And Stop Context Source Mock Server

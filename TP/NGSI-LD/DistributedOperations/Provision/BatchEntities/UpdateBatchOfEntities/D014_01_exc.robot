@@ -43,11 +43,6 @@ Setup Registration And Start Context Source Mock Server
     ${second_entity_id}=    Generate Random Vehicle Entity Id
     Set Test Variable    ${second_entity_id}
 
-    ${response}=    Create Entity    ${entity_payload_filename}    ${first_entity_id}    local=true
-    Check Response Status Code    201    ${response.status_code}
-    ${response}=    Create Entity    ${entity_payload_filename}    ${second_entity_id}    local=true
-    Check Response Status Code    201    ${response.status_code}
-
     ${registration_id}=    Generate Random CSR Id
     Set Suite Variable    ${registration_id}
     ${registration_payload}=    Prepare Context Source Registration From File
@@ -66,6 +61,14 @@ Setup Registration And Start Context Source Mock Server
     ...    ${exclusive_entities}
     ${response1}=    Create Context Source Registration With Return    ${registration_payload}
     Check Response Status Code    201    ${response1.status_code}
+
+    # 5.9.2.4: an exclusive registration is refused with Conflict if an entity with a
+    # registered id already carries a registered Attribute — so the local copies must be
+    # created AFTER the registration (entity creation carries no such restriction).
+    ${response}=    Create Entity    ${entity_payload_filename}    ${first_entity_id}    local=true
+    Check Response Status Code    201    ${response.status_code}
+    ${response}=    Create Entity    ${entity_payload_filename}    ${second_entity_id}    local=true
+    Check Response Status Code    201    ${response.status_code}
     Start Context Source Mock Server
 
 Delete Registration And Stop Context Source Mock Server

@@ -42,10 +42,6 @@ Create Entities And Registration And Start Context Source Mock Server
     ${second_entity_id}=    Generate Random Vehicle Entity Id
     Set Suite Variable    ${second_entity_id}
 
-    ${response}=    Create Entity    ${entity_payload_filename}    ${first_entity_id}    local=true
-    Check Response Status Code    201    ${response.status_code}
-    ${response}=    Create Entity    ${entity_payload_filename}    ${second_entity_id}    local=true
-    Check Response Status Code    201    ${response.status_code}
     @{entities_ids_to_be_deleted}=    Create List    ${first_entity_id}    ${second_entity_id}
     Set Suite Variable    ${entities_ids_to_be_deleted}
 
@@ -66,6 +62,14 @@ Create Entities And Registration And Start Context Source Mock Server
     ...    $.information[0].entities
     ...    ${exclusive_entities}
     ${response}=    Create Context Source Registration With Return    ${registration_payload}
+    Check Response Status Code    201    ${response.status_code}
+
+    # 5.9.2.4: an exclusive registration is refused with Conflict if an entity with a
+    # registered id already carries a registered Attribute — so the local copies must be
+    # created AFTER the registration (entity creation carries no such restriction).
+    ${response}=    Create Entity    ${entity_payload_filename}    ${first_entity_id}    local=true
+    Check Response Status Code    201    ${response.status_code}
+    ${response}=    Create Entity    ${entity_payload_filename}    ${second_entity_id}    local=true
     Check Response Status Code    201    ${response.status_code}
 
     Start Context Source Mock Server

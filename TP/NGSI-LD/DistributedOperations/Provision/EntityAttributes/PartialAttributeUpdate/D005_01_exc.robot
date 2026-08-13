@@ -60,9 +60,6 @@ Create Entity And Registration On The Context Broker And Start Context Source Mo
     ${entity_id}=    Generate Random Vehicle Entity Id
     Set Suite Variable    ${entity_id}
 
-    ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}
-    Check Response Status Code    201    ${response.status_code}
-
     ${registration_id}=    Generate Random CSR Id
     Set Suite Variable    ${registration_id}
     ${registration_payload}=    Prepare Context Source Registration From File
@@ -72,6 +69,12 @@ Create Entity And Registration On The Context Broker And Start Context Source Mo
     ...    mode=exclusive
     ...    endpoint=/broker1
     ${response}=    Create Context Source Registration With Return    ${registration_payload}
+    Check Response Status Code    201    ${response.status_code}
+
+    # 5.9.2.4: an exclusive registration is refused with Conflict if an entity with a
+    # registered id already carries a registered Attribute — so the local copy must be
+    # created AFTER the registration, and local=true so no forwarding is attempted.
+    ${response}=    Create Entity    ${entity_payload_filename}    ${entity_id}    local=true
     Check Response Status Code    201    ${response.status_code}
     Start Context Source Mock Server
 

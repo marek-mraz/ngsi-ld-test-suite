@@ -54,6 +54,38 @@ Register Broker As Context Source
     Should Be Equal As Integers    ${response.status_code}    201
     RETURN    ${response}
 
+Post Registration At Broker
+    [Documentation]    5.9.2 Register Context Source — raw document, any
+    ...    status (conflict TPs assert 409 themselves).
+    [Arguments]    ${at}    ${reg}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${response}=    POST
+    ...    url=${at}/csourceRegistrations
+    ...    json=${reg}
+    ...    headers=${headers}
+    ...    expected_status=any
+    RETURN    ${response}
+
+Patch Registration At Broker
+    [Documentation]    5.9.3 Update Context Source Registration.
+    [Arguments]    ${at}    ${rid}    ${fragment}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${r}=    Evaluate    __import__('urllib.parse', fromlist=['quote']).quote($rid, safe='')
+    ${response}=    PATCH
+    ...    url=${at}/csourceRegistrations/${r}
+    ...    json=${fragment}
+    ...    headers=${headers}
+    ...    expected_status=any
+    RETURN    ${response}
+
+Get Registration At Broker
+    [Arguments]    ${at}    ${rid}
+    ${r}=    Evaluate    __import__('urllib.parse', fromlist=['quote']).quote($rid, safe='')
+    ${response}=    GET
+    ...    url=${at}/csourceRegistrations/${r}
+    ...    expected_status=any
+    RETURN    ${response}
+
 Create Entity At Broker
     [Arguments]    ${at}    ${entity}    ${tenant}=${EMPTY}
     &{headers}=    Create Dictionary    Content-Type=application/json

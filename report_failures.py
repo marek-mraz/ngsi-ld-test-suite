@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ponytail: parse robot output.xml files -> a failures-only report.
+# Parse robot output.xml files -> a failures-only report.
 # For every FAILED test it emits: the requirements (spec tags + doc),
 # what is wrong (the assertion message: expected vs actual), and the
 # HTTP request/response that was under test.
@@ -74,7 +74,7 @@ LEFT_OUT_REASON = {
 
 def main(results_glob, outfile):
     files = sorted(glob.glob(results_glob))
-    # ponytail: first pass counts pass/fail per suite so the report can lead with totals.
+    # First pass counts pass/fail per suite so the report can lead with totals.
     counts = []  # (suite, npass, nfail)
     for xmlf in files:
         try:

@@ -155,7 +155,10 @@ IOP_EXT_REG_01_06 Auxiliary Data Fills Gaps But Never Overrides Local Data
     Should Be Equal As Integers    ${speed}    1
     ${brand}=    Evaluate    $response.json()["brandName"]["value"]
     Should Be Equal    ${brand}    Aux
-    Should Not Contain    ${response.text}    99
+    # negative: the aux value must appear NOWHERE as a value — asserted as
+    # the JSON member, not a bare substring (a run-unique hex id like
+    # b79dc993 contains "99" and red-flagged the bare form, 2026-08-16)
+    Should Not Contain    ${response.text}    "value":99
 
 IOP_EXT_REG_01_07 Inclusive Beats Auxiliary For The Same Attribute
     [Documentation]    4.3.6.2: auxiliary data "is only included if it is

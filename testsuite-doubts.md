@@ -2862,3 +2862,14 @@ the clause, so no spec-grounded TP is writable for it. Antares answers
 the broker repo's docs/upstream/etsi-raises.md context (error.md
 2026-08-13 entry); do not add a TP asserting either behaviour until the
 clause defines the case.
+
+## 2026-08-17 — 047_06 fixture missed timesFailed (fixed in fork)
+
+Table 5.2.14.2-1 defines `timesFailed` ("Number of times an unsuccessful
+response (or timeout) has been received when delivering the notification")
+as an output-only NotificationParams member, and 5.11.7 reuses
+NotificationParams for csource registration subscriptions. The fixture
+`1-timesSent-failed.json` asserted the failed-notification shape WITHOUT
+it, so a broker emitting the spec-defined member failed the strict diff.
+Fixture now carries `"timesFailed": 1` (deterministic: exactly one failed
+send in the scenario).

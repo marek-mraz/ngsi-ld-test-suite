@@ -131,8 +131,12 @@ IOP_EXT_MAP_01_05 PATCH Applies expiresAt And Ignores Output-Only Members
     [Documentation]    5.14.2.4: "Perform an update operation on the target
     ...    EntityMap using the fields specified within the JSON-LD
     ...    document. Any provided output-only fields shall be ignored" —
-    ...    expiresAt (Table 5.2.39-1) applies; entityMap (Table 5.2.39-2,
-    ...    output-only) is ignored, never stored.
+    ...    expiresAt (Table 5.2.39-1) applies, though Table 6.4.3.2-1 lets
+    ...    the broker set the actual expiry, "possibly overriding the
+    ...    requested duration" — so the assertion is that the expiry CHANGED
+    ...    toward the request and never past it, not byte equality with a
+    ...    far-future instant a broker may legally clamp. entityMap
+    ...    (Table 5.2.39-2, output-only) is ignored, never stored.
     [Tags]    iop    iop-ext    5_14_2    5_2_39    since_v1.9.1
     Register Broker As Context Source    ${b1_url}    ${registration_id}    ${b2_url}    ${etype}
     ${r}=    Simple Vehicle Entity    ${entity_id}-r    ${etype}    2
@@ -140,6 +144,8 @@ IOP_EXT_MAP_01_05 PATCH Applies expiresAt And Ignores Output-Only Members
     ${created}=    Query Entities Via Broker    ${b1_url}    type=${etype}    entityMap=true
     Check Response Status Code    201    ${created.status_code}
     ${map_id}=    Map Id From    ${created.headers}
+    ${before}=    GET    url=${b1_url}/entityMaps/${map_id}    expected_status=any
+    ${pre}=    Set Variable    ${before.json()['expiresAt']}
 
     &{headers}=    Create Dictionary    Content-Type=application/json
     ${fragment}=    Evaluate
@@ -150,7 +156,10 @@ IOP_EXT_MAP_01_05 PATCH Applies expiresAt And Ignores Output-Only Members
 
     ${map}=    GET    url=${b1_url}/entityMaps/${map_id}    expected_status=any
     Check Response Status Code    200    ${map.status_code}
-    Should Be Equal    ${map.json()['expiresAt']}    2099-01-01T00:00:00Z
+    ${post}=    Set Variable    ${map.json()['expiresAt']}
+    Should Be True    '${post}' != '${pre}'    the PATCH must have applied expiresAt
+    Should Be True    '${post}' > '${pre}'    the applied expiry extends toward the request
+    Should Be True    '${post}' <= '2099-01-01T00:00:00Z'    never past the requested instant
     Should Not Contain    ${map.text}    urn:ngsi-ld:Forged:1
 
 IOP_EXT_MAP_01_06 A Deleted Map Recreates On Use Instead Of Failing

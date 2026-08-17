@@ -111,6 +111,18 @@ ${holed_polygon}=               [[[0,0],[10,0],[10,10],[0,10],[0,0]],[[4,4],[6,4
     [Tags]    e-query    4_10    since_v1.9.1
     near;maxDistance==5000    Point    [0,85]    200    0
 
+019_30_13 Infinite MaxDistance Is Rejected
+    [Documentation]    4.10 PositiveNumber is an RFC 8259 Number — "inf" is not a
+    ...    number and shall be rejected, not read as an unbounded buffer
+    [Tags]    e-query    4_10    since_v1.9.1
+    near;maxDistance==inf    Point    [8,40]    400    ${None}
+
+019_30_14 An Overflowing MaxDistance Literal Is Rejected
+    [Documentation]    4.10 PositiveNumber: a literal that no longer denotes a finite
+    ...    number violates the grammar in the same way a negative one does
+    [Tags]    e-query    4_10    since_v1.9.1
+    near;maxDistance==1e400    Point    [8,40]    400    ${None}
+
 
 *** Keywords ***
 Query Entities With Geoquery Expecting Count

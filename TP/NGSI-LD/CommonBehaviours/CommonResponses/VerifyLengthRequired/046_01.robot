@@ -68,14 +68,28 @@ ${entity_body}      {"id": "urn:ngsi-ld:Building:411-01", "type": "Building"}
     Should Not Be Equal As Integers    ${response.status_code}    411
 
 
+046_01_05 The Precondition Is Decided Before The Tenant Is Looked Up
+    [Documentation]    6.3.4 grants the missing Content-Length no exemption, so naming a
+    ...    Tenant that does not exist cannot turn the bare 411 into a 404 with a body —
+    ...    the precondition holds whatever the request targets
+    [Tags]    common-behaviours    6_3_2    6_3_4    4_14    since_v1.9.1
+
+    ${response}=    Send Without Content Length
+    ...    POST
+    ...    ${url}/${ENTITIES_ENDPOINT_PATH}
+    ...    ${{ {"NGSILD-Tenant": "tp46105nosuchtenant"} }}
+    Bare 411    ${response}
+    Should Not Be Equal As Integers    ${response.status_code}    404
+
+
 *** Keywords ***
 Send Without Content Length
     [Documentation]    requests sets Content-Length for any ordinary body, so the body is
     ...    passed as an iterator — that selects chunked transfer, which carries no
     ...    Content-Length. 6.3.4 grants chunked no exemption.
-    [Arguments]    ${method}    ${target}
+    [Arguments]    ${method}    ${target}    ${extra_headers}=${{ {} }}
     ${response}=    Evaluate
-    ...    __import__("requests").request($method, $target, data=iter([$entity_body.encode()]), headers={"Content-Type": "application/json"}, timeout=20)
+    ...    __import__("requests").request($method, $target, data=iter([$entity_body.encode()]), headers={"Content-Type": "application/json", **$extra_headers}, timeout=20)
     RETURN    ${response}
 
 Bare 411

@@ -21,7 +21,9 @@ ${entity_id}=       urn:ngsi-ld:Vehicle:em5142
 
 *** Test Cases ***
 5142_01_01 Update ExpiresAt And Ignore Output-Only Members
-    [Documentation]    5.14.2.4/.5: 204 on success; expiresAt applied;
+    [Documentation]    5.14.2.4/.5: 204 on success; expiresAt applied, and per
+    ...    Table 6.4.3.2-1 the actual expiry is set by the Context Broker,
+    ...    "possibly overriding the requested duration";
     ...    a client-supplied entityMap member must NOT overwrite the
     ...    system-generated mapping.
     [Tags]    em-update    5_14_2    since_v1.9.1
@@ -33,7 +35,7 @@ ${entity_id}=       urn:ngsi-ld:Vehicle:em5142
 
     ${response}=    Retrieve EntityMap    ${entityMapId}
     Check Response Status Code    200    ${response.status_code}
-    Should Be Equal    ${response.json()['expiresAt']}    2099-01-01T00:00:00Z
+    Should Be True    "${response.json()['expiresAt']}" < "2099-01-01T00:00:00Z"
     Dictionary Should Not Contain Key
     ...    ${response.json()['entityMap']}
     ...    urn:ngsi-ld:Vehicle:injected
